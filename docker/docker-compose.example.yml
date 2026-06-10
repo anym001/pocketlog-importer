@@ -1,0 +1,19 @@
+services:
+  pocketlog-bank-importer:
+    image: ghcr.io/anym001/pocketlog-bank-importer:dev
+    container_name: pocketlog-bank-importer
+    restart: unless-stopped
+    environment:
+      # Create the key in PocketLog (UI -> API keys) with the "import" scope.
+      POCKETLOG_API_KEY: "plk_replace_me"
+      PUID: "1000"
+      PGID: "1000"
+      LOG_LEVEL: "INFO"
+      # Optional persistent log file (rotates):
+      LOG_FILE: "/config/logs/importer.log"
+    volumes:
+      - ./config:/config
+      - ./data:/data
+    # The container runs the internal scheduler. Trigger an immediate run with:
+    #   docker exec pocketlog-bank-importer pocketlog-import --once
+    #   docker exec pocketlog-bank-importer pocketlog-import --once --dry-run

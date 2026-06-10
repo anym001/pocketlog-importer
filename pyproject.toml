@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pocketlog-bank-importer"
+version = "0.0.0"
+description = "Parse bank CSV exports (easybank, dadat) and import them into PocketLog."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+    "httpx>=0.28,<1",
+    "PyYAML>=6,<7",
+    "pydantic>=2.10,<3",
+    "croniter>=3,<7",
+]
+
+[project.scripts]
+pocketlog-import = "bank_importer.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["bank_importer*"]

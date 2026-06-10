@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+
+# Local runtime data / secrets (never commit real config or bank data)
+/config/config.yaml
+/config/rules.yaml
+/data/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
