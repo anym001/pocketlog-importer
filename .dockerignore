@@ -1,0 +1,16 @@
+.git
+.github
+tests
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+*.egg-info
+.venv
+venv
+data
+config/config.yaml
+config/rules.yaml
+# Note: README.md is kept — pyproject.toml references it as the long description.
+CONTRIBUTING.md
+CLAUDE.md
