@@ -22,6 +22,7 @@ COPY bank_importer ./bank_importer
 RUN sed -i "s|^__version__ = .*|__version__ = \"${APP_VERSION}\"|" bank_importer/__init__.py \
  && pip install --no-cache-dir .
 
+COPY config/config.example.yaml config/rules.example.yaml /app/config/
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
