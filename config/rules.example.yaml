@@ -1,0 +1,49 @@
+# Rules whitelist for the PocketLog bank importer.
+#
+# Each rule matches a REGEX (case-insensitive) against the booking text. The
+# FIRST matching rule wins — order matters. A booking that matches NO rule is
+# dropped (no fallback) and listed in <bank>-<ts>.unmatched.csv for review, so
+# you can add a rule for it later. Only matched bookings are imported.
+#
+# Fields per rule:
+#   match        regex tested against the booking text (required)
+#   description  overrides the PocketLog description (default: raw booking text)
+#   category     PocketLog category name (auto-created if new)
+#   tags         list of tag names (auto-created if new)
+#   type         optional override "in"/"out" (default: from the amount sign)
+
+rules:
+  - match: "MUSIKBEISPIEL"
+    description: "Musikbeispiel Premium"
+    category: "Freizeit"
+    tags: [abo]
+
+  - match: "VIDEOBEISPIEL"
+    description: "Videobeispiel"
+    category: "Freizeit"
+    tags: [abo]
+
+  - match: "Mobilbeispiel|Mobilbeispiel"
+    description: "Mobilbeispiel Mobilfunk"
+    category: "Internet"
+    tags: [fixkosten]
+
+  - match: "Strombeispiel"
+    description: "Strom"
+    category: "Wohnen"
+    tags: [fixkosten]
+
+  - match: "MIETBEISPIEL|Mietbeispiel"
+    description: "Miete"
+    category: "Wohnen"
+    tags: [fixkosten]
+
+  - match: "SHOPBEISPIEL"
+    description: "Shopbeispiel"
+    category: "Kleidung"
+    tags: [shopping]
+
+  - match: "Debitkartenbeheb|BANKOMAT"
+    description: "Bargeldbehebung"
+    category: "Bargeld"
+    tags: [bargeld]

@@ -1,0 +1,33 @@
+# PocketLog bank importer — example configuration.
+#
+# Copy to /config/config.yaml and adjust. The API key is NOT stored here; set
+# it via the POCKETLOG_API_KEY environment variable (create the key in the
+# PocketLog UI with the "import" scope).
+
+pocketlog:
+  base_url: https://pocketlog.example.com
+  verify_tls: true
+
+schedule:
+  # Standard cron expression (minute hour day month weekday). Hourly by default.
+  cron: "0 * * * *"
+
+paths:
+  input: /data/input
+  processed: /data/processed
+  failed: /data/failed
+  output: /data/output
+
+# Optional: force a parser by filename glob. Omit to rely on auto-detection.
+banks: []
+#   - match: "EASYBANK_*.csv"
+#     parser: easybank
+#   - match: "umsaetzegirokonto_*.csv"
+#     parser: dadat
+
+options:
+  # Write output CSVs but never push to the API. Useful for a first test run.
+  dry_run: false
+
+# Path to the rules whitelist (see rules.example.yaml).
+rules_file: /config/rules.yaml
