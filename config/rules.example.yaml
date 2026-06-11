@@ -33,7 +33,7 @@ rules:
     category: "Wohnen"
     tags: [fixkosten]
 
-  - match: "MIETBEISPIEL|Mietbeispiel"
+  - match: "Mietbeispiel"
     description: "Miete"
     category: "Wohnen"
     tags: [fixkosten]

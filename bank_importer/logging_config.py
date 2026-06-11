@@ -62,6 +62,20 @@ def configure_logging() -> logging.Logger:
     return logger
 
 
+def safe(value: object, *, max_len: int = 256) -> str:
+    """Sanitise an externally-controlled string for plain-text logging.
+
+    Strips CR/LF (and other control chars) so a crafted filename or an API
+    error value echoed back from bank-CSV content can't forge extra log
+    lines, and truncates to bound length. Mirrors PocketLog's logging hardening.
+    """
+    s = "" if value is None else str(value)
+    s = "".join(" " if (c == "\n" or c == "\r" or ord(c) < 32) else c for c in s)
+    if len(s) > max_len:
+        s = s[:max_len] + "…"
+    return s
+
+
 def get_logger(suffix: str | None = None) -> logging.Logger:
     """Return a child logger under the package namespace."""
     name = LOGGER_NAME if not suffix else f"{LOGGER_NAME}.{suffix}"

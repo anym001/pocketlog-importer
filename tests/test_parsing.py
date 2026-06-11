@@ -6,6 +6,7 @@ import pytest
 from bank_importer.parsing import (
     collapse_whitespace,
     decode_bytes,
+    guard_csv_field,
     parse_amount,
     parse_date,
 )
@@ -50,3 +51,18 @@ def test_decode_bytes_utf8_and_cp1252():
 
 def test_collapse_whitespace():
     assert collapse_whitespace("a   b\t c\n") == "a b c"
+
+
+@pytest.mark.parametrize(
+    "raw,expected",
+    [
+        ("=SUM(A1)", "'=SUM(A1)"),
+        ("+43 660 123", "'+43 660 123"),
+        ("-minus", "'-minus"),
+        ("@cmd", "'@cmd"),
+        ("safe text", "safe text"),
+        ("", ""),
+    ],
+)
+def test_guard_csv_field(raw, expected):
+    assert guard_csv_field(raw) == expected

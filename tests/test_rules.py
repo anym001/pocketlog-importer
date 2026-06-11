@@ -39,11 +39,11 @@ def test_no_match_is_dropped():
 def test_first_rule_wins():
     rules = compile_rules(
         [
-            {"match": "MIETBEISPIEL", "category": "Wohnen"},
-            {"match": "MIETBEISPIEL", "category": "Andere"},
+            {"match": "Mietbeispiel", "category": "Wohnen"},
+            {"match": "Mietbeispiel", "category": "Andere"},
         ]
     )
-    matched, _ = apply_rules([_tx("MIETBEISPIEL VS 06")], rules)
+    matched, _ = apply_rules([_tx("Mietbeispiel VS 06")], rules)
     assert matched[0].category == "Wohnen"
 
 
@@ -54,9 +54,9 @@ def test_case_insensitive_regex():
 
 
 def test_description_defaults_to_raw_text():
-    rules = compile_rules([{"match": "STROMBEISPIEL", "category": "Wohnen"}])
-    matched, _ = apply_rules([_tx("Strombeispiel GmbH")], rules)
-    assert matched[0].description == "Strombeispiel GmbH"
+    rules = compile_rules([{"match": "Strombeispiel", "category": "Wohnen"}])
+    matched, _ = apply_rules([_tx("Strombeispiel AG Strom")], rules)
+    assert matched[0].description == "Strombeispiel AG Strom"
 
 
 def test_type_override():

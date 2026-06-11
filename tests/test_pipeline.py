@@ -89,3 +89,28 @@ def test_no_input_is_noop(tmp_path):
     summary = pipeline.run(_config(tmp_path), _rules(), dry_run=True)
     assert summary.files == 0
     assert (tmp_path / ".last_run").exists()
+
+
+def test_process_file_returns_counts(tmp_path):
+    # _process_file is directly testable: it returns a FileResult instead of
+    # mutating a shared summary. client=None == dry-run (no API import).
+    _seed(tmp_path, "easybank_sample.csv", "EASYBANK_x.csv")
+    path = tmp_path / "input" / "EASYBANK_x.csv"
+    result = pipeline._process_file(path, _config(tmp_path), _rules(), client=None)
+
+    assert result.parsed == 5
+    assert result.matched == 1
+    assert result.unmatched == 4
+    assert result.imported == 0
+    assert result.failed is False
+
+
+def test_summary_fold_aggregates_and_tracks_failures():
+    summary = pipeline.RunSummary()
+    summary.fold(pipeline.FileResult(parsed=3, matched=2, unmatched=1), "a.csv")
+    summary.fold(pipeline.FileResult(failed=True), "b.csv")
+
+    assert summary.parsed == 3
+    assert summary.matched == 2
+    assert summary.unmatched == 1
+    assert summary.failed_files == ["b.csv"]

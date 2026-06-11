@@ -8,8 +8,6 @@ move into ``processed/`` is atomic.
 
 from __future__ import annotations
 
-import csv
-import io
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -17,8 +15,8 @@ from datetime import datetime
 from pathlib import Path
 
 from .config import AppConfig
-from .exporters import PocketLogClient, serialize_csv
-from .logging_config import get_logger
+from .exporters import PocketLogClient, serialize_csv, serialize_unmatched
+from .logging_config import get_logger, safe
 from .models import NormalizedTransaction
 from .parsers import detect_parser
 from .parsing import decode_bytes
@@ -31,6 +29,19 @@ _HEARTBEAT_NAME = ".last_run"
 
 
 @dataclass
+class FileResult:
+    """Counts from processing a single input file."""
+
+    parsed: int = 0
+    matched: int = 0
+    unmatched: int = 0
+    imported: int = 0
+    deduped: int = 0
+    skipped: int = 0
+    failed: bool = False
+
+
+@dataclass
 class RunSummary:
     files: int = 0
     parsed: int = 0
@@ -40,6 +51,17 @@ class RunSummary:
     deduped: int = 0
     skipped: int = 0
     failed_files: list[str] = field(default_factory=list)
+
+    def fold(self, result: FileResult, filename: str) -> None:
+        """Fold one file's counts into the run totals."""
+        self.parsed += result.parsed
+        self.matched += result.matched
+        self.unmatched += result.unmatched
+        self.imported += result.imported
+        self.deduped += result.deduped
+        self.skipped += result.skipped
+        if result.failed:
+            self.failed_files.append(filename)
 
 
 @contextmanager
@@ -69,13 +91,8 @@ def _write_unmatched(
         return
     out_dir.mkdir(parents=True, exist_ok=True)
     target = out_dir / f"{stem}-{ts}.unmatched.csv"
-    buffer = io.StringIO()
-    writer = csv.writer(buffer, delimiter=";", lineterminator="\n")
-    writer.writerow(["date", "type", "amount", "raw_text"])
-    for tx in unmatched:
-        writer.writerow([tx.date.isoformat(), tx.type, f"{tx.amount:.2f}", tx.raw_text])
-    target.write_bytes(buffer.getvalue().encode("utf-8"))
-    log.info("Wrote %d unmatched bookings to %s", len(unmatched), target.name)
+    target.write_bytes(serialize_unmatched(unmatched))
+    log.info("Wrote %d unmatched bookings to %s", len(unmatched), safe(target.name))
 
 
 def _move(src: Path, dest_dir: Path, ts: str) -> None:
@@ -88,26 +105,27 @@ def _process_file(
     config: AppConfig,
     rules: list[Rule],
     client: PocketLogClient | None,
-    summary: RunSummary,
-) -> None:
+) -> FileResult:
+    """Parse, filter, export and archive a single CSV; return its counts."""
+    result = FileResult()
     raw = path.read_bytes()
     text = decode_bytes(raw)
     first_line = text.splitlines()[0] if text.strip() else ""
     parser = detect_parser(path.name, first_line, config.banks)
     if parser is None:
-        log.warning("No parser matched %s — moving to failed/", path.name)
-        summary.failed_files.append(path.name)
+        log.warning("No parser matched %s — moving to failed/", safe(path.name))
         _move(path, config.paths.failed, _timestamp())
-        return
+        result.failed = True
+        return result
 
     transactions = parser.parse(text)
     matched, unmatched = apply_rules(transactions, rules)
-    summary.parsed += len(transactions)
-    summary.matched += len(matched)
-    summary.unmatched += len(unmatched)
+    result.parsed = len(transactions)
+    result.matched = len(matched)
+    result.unmatched = len(unmatched)
     log.info(
         "%s: bank=%s parsed=%d matched=%d unmatched=%d",
-        path.name,
+        safe(path.name),
         parser.name,
         len(transactions),
         len(matched),
@@ -123,28 +141,29 @@ def _process_file(
         config.paths.output.mkdir(parents=True, exist_ok=True)
         out_target.write_bytes(csv_bytes)
         if client is not None:
-            result = client.import_csv(csv_bytes, filename=out_target.name)
-            summary.imported += result.imported
-            summary.deduped += result.deduped
-            summary.skipped += result.skipped
+            api = client.import_csv(csv_bytes, filename=out_target.name)
+            result.imported = api.imported
+            result.deduped = api.deduped
+            result.skipped = api.skipped
             log.info(
                 "%s: imported=%d deduped=%d skipped=%d errors=%d",
-                path.name,
-                result.imported,
-                result.deduped,
-                result.skipped,
-                len(result.errors),
+                safe(path.name),
+                api.imported,
+                api.deduped,
+                api.skipped,
+                len(api.errors),
             )
-            for err in result.errors[:10]:
+            for err in api.errors[:10]:
                 log.warning(
                     "%s row %s: %s %s",
-                    path.name,
+                    safe(path.name),
                     err.get("row"),
-                    err.get("code"),
-                    err.get("params", ""),
+                    safe(err.get("code")),
+                    safe(err.get("params", "")),
                 )
 
     _move(path, config.paths.processed, ts)
+    return result
 
 
 def run(config: AppConfig, rules: list[Rule], *, dry_run: bool = False) -> RunSummary:
@@ -174,27 +193,32 @@ def run(config: AppConfig, rules: list[Rule], *, dry_run: bool = False) -> RunSu
             for path in files:
                 summary.files += 1
                 try:
-                    _process_file(path, config, rules, client, summary)
+                    result = _process_file(path, config, rules, client)
                 except Exception:  # noqa: BLE001 - isolate per-file failures
-                    log.exception("Failed to process %s — moving to failed/", path.name)
+                    log.exception(
+                        "Failed to process %s — moving to failed/", safe(path.name)
+                    )
                     summary.failed_files.append(path.name)
                     try:
                         _move(path, config.paths.failed, _timestamp())
                     except OSError:
-                        log.exception("Could not move %s to failed/", path.name)
+                        log.exception("Could not move %s to failed/", safe(path.name))
+                else:
+                    summary.fold(result, path.name)
     finally:
         if client is not None:
             client.close()
 
     log.info(
         "Run complete: files=%d parsed=%d matched=%d unmatched=%d "
-        "imported=%d deduped=%d failed=%d",
+        "imported=%d deduped=%d skipped=%d failed=%d",
         summary.files,
         summary.parsed,
         summary.matched,
         summary.unmatched,
         summary.imported,
         summary.deduped,
+        summary.skipped,
         len(summary.failed_files),
     )
     _write_heartbeat(config)
