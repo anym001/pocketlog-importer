@@ -23,7 +23,7 @@ rules:
     category: "Freizeit"
     tags: [abo]
 
-  - match: "Mobilbeispiel|Mobilbeispiel"
+  - match: "Mobilbeispiel"
     description: "Mobilbeispiel Mobilfunk"
     category: "Internet"
     tags: [fixkosten]
