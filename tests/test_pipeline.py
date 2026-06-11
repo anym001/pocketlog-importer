@@ -23,7 +23,13 @@ def _config(tmp_path: Path, dry_run: bool = True) -> AppConfig:
 
 def _rules():
     return compile_rules(
-        [{"match": "MUSIKBEISPIEL", "description": "Musikbeispiel", "category": "Freizeit"}]
+        [
+            {
+                "match": "MUSIKBEISPIEL",
+                "description": "Musikbeispiel",
+                "category": "Freizeit",
+            }
+        ]
     )
 
 
