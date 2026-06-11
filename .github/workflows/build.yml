@@ -5,10 +5,6 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  packages: write
-
 jobs:
   tests:
     uses: ./.github/workflows/test.yml
@@ -16,6 +12,11 @@ jobs:
   release:
     needs: tests
     runs-on: ubuntu-latest
+    # Write scopes live on the release job only, never workflow-wide, so the
+    # reusable `tests` call above runs read-only.
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - id: version
