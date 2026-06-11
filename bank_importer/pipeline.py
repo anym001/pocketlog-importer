@@ -18,7 +18,7 @@ from pathlib import Path
 
 from .config import AppConfig
 from .exporters import PocketLogClient, serialize_csv
-from .logging_config import get_logger
+from .logging_config import get_logger, safe
 from .models import NormalizedTransaction
 from .parsers import detect_parser
 from .parsing import decode_bytes
@@ -75,7 +75,7 @@ def _write_unmatched(
     for tx in unmatched:
         writer.writerow([tx.date.isoformat(), tx.type, f"{tx.amount:.2f}", tx.raw_text])
     target.write_bytes(buffer.getvalue().encode("utf-8"))
-    log.info("Wrote %d unmatched bookings to %s", len(unmatched), target.name)
+    log.info("Wrote %d unmatched bookings to %s", len(unmatched), safe(target.name))
 
 
 def _move(src: Path, dest_dir: Path, ts: str) -> None:
@@ -95,7 +95,7 @@ def _process_file(
     first_line = text.splitlines()[0] if text.strip() else ""
     parser = detect_parser(path.name, first_line, config.banks)
     if parser is None:
-        log.warning("No parser matched %s — moving to failed/", path.name)
+        log.warning("No parser matched %s — moving to failed/", safe(path.name))
         summary.failed_files.append(path.name)
         _move(path, config.paths.failed, _timestamp())
         return
@@ -107,7 +107,7 @@ def _process_file(
     summary.unmatched += len(unmatched)
     log.info(
         "%s: bank=%s parsed=%d matched=%d unmatched=%d",
-        path.name,
+        safe(path.name),
         parser.name,
         len(transactions),
         len(matched),
@@ -129,7 +129,7 @@ def _process_file(
             summary.skipped += result.skipped
             log.info(
                 "%s: imported=%d deduped=%d skipped=%d errors=%d",
-                path.name,
+                safe(path.name),
                 result.imported,
                 result.deduped,
                 result.skipped,
@@ -138,10 +138,10 @@ def _process_file(
             for err in result.errors[:10]:
                 log.warning(
                     "%s row %s: %s %s",
-                    path.name,
+                    safe(path.name),
                     err.get("row"),
-                    err.get("code"),
-                    err.get("params", ""),
+                    safe(err.get("code")),
+                    safe(err.get("params", "")),
                 )
 
     _move(path, config.paths.processed, ts)
@@ -176,12 +176,14 @@ def run(config: AppConfig, rules: list[Rule], *, dry_run: bool = False) -> RunSu
                 try:
                     _process_file(path, config, rules, client, summary)
                 except Exception:  # noqa: BLE001 - isolate per-file failures
-                    log.exception("Failed to process %s — moving to failed/", path.name)
+                    log.exception(
+                        "Failed to process %s — moving to failed/", safe(path.name)
+                    )
                     summary.failed_files.append(path.name)
                     try:
                         _move(path, config.paths.failed, _timestamp())
                     except OSError:
-                        log.exception("Could not move %s to failed/", path.name)
+                        log.exception("Could not move %s to failed/", safe(path.name))
     finally:
         if client is not None:
             client.close()
