@@ -65,3 +65,16 @@ def parse_date(raw: str, fmt: str) -> date:
         return datetime.strptime(raw.strip(), fmt).date()
     except ValueError as exc:
         raise ValueError(f"unrecognised date: {raw!r}") from exc
+
+
+# A cell starting with one of these executes as a formula when the CSV is
+# opened in a spreadsheet (CSV/formula injection). Every CSV we write that
+# contains foreign bank text must guard those fields.
+CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def guard_csv_field(value: str) -> str:
+    """Prefix a leading single quote to neutralise CSV formula injection."""
+    if value and value[0] in CSV_FORMULA_PREFIXES:
+        return "'" + value
+    return value

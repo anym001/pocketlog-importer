@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 
-from bank_importer.exporters import serialize_csv
+from bank_importer.exporters import serialize_csv, serialize_unmatched
 from bank_importer.models import NormalizedTransaction
 
 
@@ -42,3 +42,17 @@ def test_empty_category_serializes_blank():
     out = serialize_csv([_tx(category=None, tags=[])]).decode("utf-8")
     # date;type;amount;description;;  (empty category, empty tags)
     assert out.splitlines()[1].endswith("Groceries;;")
+
+
+def test_unmatched_header_and_row():
+    out = serialize_unmatched([_tx(raw_text="REWE Markt 0815")]).decode("utf-8")
+    lines = out.splitlines()
+    assert lines[0] == "date;type;amount;raw_text"
+    assert lines[1] == "2026-05-01;out;42.50;REWE Markt 0815"
+
+
+def test_unmatched_guards_raw_text_formula_injection():
+    # raw_text is foreign bank text and the review CSV is opened in Excel —
+    # it must get the same guard as the export columns.
+    out = serialize_unmatched([_tx(raw_text="=cmd!A0")]).decode("utf-8")
+    assert out.splitlines()[1].endswith("'=cmd!A0")

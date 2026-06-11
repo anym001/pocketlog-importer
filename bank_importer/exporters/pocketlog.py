@@ -19,27 +19,25 @@ from decimal import Decimal
 import httpx
 
 from ..models import NormalizedTransaction
+from ..parsing import guard_csv_field
 
 CSV_HEADER = ["date", "type", "amount", "description", "category", "tags"]
-_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+UNMATCHED_CSV_HEADER = ["date", "type", "amount", "raw_text"]
 _IMPORT_PATH = "/api/import/csv"
 
 
-def _guard(value: str) -> str:
-    """Prefix a leading single quote to neutralise CSV formula injection."""
-    if value and value[0] in _FORMULA_PREFIXES:
-        return "'" + value
-    return value
+def _amount_str(amount: Decimal) -> str:
+    return f"{amount:.2f}" if isinstance(amount, Decimal) else str(amount)
 
 
 def _format_row(tx: NormalizedTransaction) -> list[str]:
     return [
         tx.date.isoformat() if isinstance(tx.date, date) else str(tx.date),
         tx.type,
-        f"{tx.amount:.2f}" if isinstance(tx.amount, Decimal) else str(tx.amount),
-        _guard(tx.description),
-        _guard(tx.category or ""),
-        ",".join(_guard(t) for t in tx.tags),
+        _amount_str(tx.amount),
+        guard_csv_field(tx.description),
+        guard_csv_field(tx.category or ""),
+        ",".join(guard_csv_field(t) for t in tx.tags),
     ]
 
 
@@ -50,6 +48,28 @@ def serialize_csv(transactions: list[NormalizedTransaction]) -> bytes:
     writer.writerow(CSV_HEADER)
     for tx in transactions:
         writer.writerow(_format_row(tx))
+    return buffer.getvalue().encode("utf-8")
+
+
+def serialize_unmatched(transactions: list[NormalizedTransaction]) -> bytes:
+    """Serialize unmatched bookings into the review CSV bytes (UTF-8).
+
+    The ``*.unmatched.csv`` files are meant to be opened in a spreadsheet for
+    review, and ``raw_text`` is foreign bank text — so it gets the same
+    formula-injection guard as the export columns.
+    """
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, delimiter=";", lineterminator="\n")
+    writer.writerow(UNMATCHED_CSV_HEADER)
+    for tx in transactions:
+        writer.writerow(
+            [
+                tx.date.isoformat(),
+                tx.type,
+                _amount_str(tx.amount),
+                guard_csv_field(tx.raw_text),
+            ]
+        )
     return buffer.getvalue().encode("utf-8")
 
 

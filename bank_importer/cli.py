@@ -58,15 +58,15 @@ def main(argv: list[str] | None = None) -> int:
 
     log.info("pocketlog-import %s starting (rules: %d)", __version__, len(rules))
 
+    # CLI flag wins over config; merge once so both run modes read one value.
+    config.options.dry_run = args.dry_run or config.options.dry_run
+
     if args.once:
-        dry_run = args.dry_run or config.options.dry_run
         from .pipeline import run
 
-        run(config, rules, dry_run=dry_run)
+        run(config, rules, dry_run=config.options.dry_run)
         return 0
 
-    if args.dry_run:
-        config.options.dry_run = True
     from .scheduler import run_scheduler
 
     run_scheduler(config, rules)
