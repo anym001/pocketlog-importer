@@ -29,5 +29,16 @@ options:
   # Write output CSVs but never push to the API. Useful for a first test run.
   dry_run: false
 
+# Optional: push notifications about run outcomes via a Gotify-compatible
+# endpoint (PushBits, Gotify). Off unless `url` is set. The application token
+# is NOT stored here; set it via the NOTIFY_TOKEN environment variable.
+# notify:
+#   type: gotify
+#   url: https://pushbits.example.com
+#   # "problems" (default) = only failed/unmatched runs and crashes;
+#   # "always" also reports clean runs. Idle runs (no input) never notify.
+#   events: problems
+#   verify_tls: true
+
 # Path to the rules whitelist (see rules.example.yaml).
 rules_file: /config/rules.yaml

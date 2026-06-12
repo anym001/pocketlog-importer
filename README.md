@@ -91,12 +91,34 @@ rules:
 
 Rules are evaluated top to bottom; the **first** matching rule wins.
 
+### Notifications
+
+Optional push notifications about run outcomes via any **Gotify-compatible**
+endpoint — this includes [PushBits](https://github.com/pushbits/server)
+(relays to Matrix) and Gotify itself. Off unless `notify.url` is set:
+
+```yaml
+notify:
+  type: gotify                       # PushBits + Gotify
+  url: https://pushbits.example.com
+  events: problems                   # problems (default) | always
+```
+
+The application token goes into the `NOTIFY_TOKEN` environment variable —
+never into YAML. `events: problems` notifies only on failed files, unmatched
+bookings, or a crashed run (high priority); `events: always` also reports
+clean runs. Idle runs (empty input directory) and dry-runs never notify, and
+notifications carry only counters and filenames — no booking data.
+Notification delivery is best-effort: a failed push is logged and never
+affects the import itself.
+
 ## Environment variables
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `POCKETLOG_API_KEY` | — | **Required** for real imports (`import` scope key) |
 | `POCKETLOG_BASE_URL` | — | Optional override of `pocketlog.base_url` |
+| `NOTIFY_TOKEN` | — | Application token for `notify.url` (PushBits/Gotify) |
 | `PUID` / `PGID` | `1000` | Ownership of `/config` + `/data` (Unraid: `99` / `100`) |
 | `LOG_LEVEL` | `INFO` | Log verbosity |
 | `LOG_FILE` | — | Optional rotating log file, e.g. `/config/logs/importer.log` |
