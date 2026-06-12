@@ -13,7 +13,7 @@ def test_easybank_parse(easybank_csv):
     assert first.date == date(2026, 6, 8)
     assert first.type == "out"
     assert first.amount == Decimal("13.99")
-    assert "MUSIKBEISPIEL" in first.raw_text
+    assert "STREAMINGCO" in first.raw_text
     # whitespace runs collapsed
     assert "  " not in first.raw_text
 
@@ -22,12 +22,12 @@ def test_dadat_parse(dadat_csv):
     parser = get_parser("dadat")
     txs = parser.parse(decode_bytes(dadat_csv))
     assert len(txs) == 3
-    # Row 3 is the Shopbeispiel e-commerce booking.
-    shopbeispiel = txs[2]
-    assert shopbeispiel.date == date(2026, 5, 11)
-    assert shopbeispiel.type == "out"
-    assert shopbeispiel.amount == Decimal("35.98")
-    assert "SHOPBEISPIEL" in shopbeispiel.raw_text.upper()
+    # Row 3 is the online shop e-commerce booking.
+    online_shop = txs[2]
+    assert online_shop.date == date(2026, 5, 11)
+    assert online_shop.type == "out"
+    assert online_shop.amount == Decimal("35.98")
+    assert "ONLINESHOP" in online_shop.raw_text.upper()
 
 
 def test_autodetect_easybank(easybank_csv):
