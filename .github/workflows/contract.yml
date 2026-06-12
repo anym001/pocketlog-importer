@@ -1,0 +1,32 @@
+# Detects contract drift from the PocketLog side. Importer PRs gate on the
+# released image via test.yml; this nightly run additionally covers :dev so a
+# breaking PocketLog change is caught before it is released — without letting
+# a temporarily broken :dev block unrelated importer PRs.
+name: contract
+
+on:
+  schedule:
+    - cron: "23 3 * * *" # nightly, off the top-of-hour load spike
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - ghcr.io/anym001/pocketlog:latest
+          - ghcr.io/anym001/pocketlog:dev
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q -m integration
+        env:
+          POCKETLOG_IMAGE: ${{ matrix.image }}
