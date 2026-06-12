@@ -238,9 +238,14 @@ def run(config: AppConfig, rules: list[Rule], *, dry_run: bool = False) -> RunSu
     return summary
 
 
+def heartbeat_path(config: AppConfig) -> Path:
+    """Where runs record their heartbeat (consumed by ``--healthcheck``)."""
+    return config.paths.input.parent / _HEARTBEAT_NAME
+
+
 def _write_heartbeat(config: AppConfig) -> None:
     try:
-        hb = config.paths.input.parent / _HEARTBEAT_NAME
+        hb = heartbeat_path(config)
         hb.parent.mkdir(parents=True, exist_ok=True)
         hb.write_text(str(int(time.time())), encoding="utf-8")
     except OSError:

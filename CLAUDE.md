@@ -28,7 +28,10 @@ original → /data/processed/ (success) | /data/failed/ (parse/import error)
 Run model: **internal scheduler** (`scheduler.py`, cron via `croniter`) is the
 container foreground process. The same run is callable on demand via
 `pocketlog-import --once [--dry-run]` (used by `docker exec` / Unraid User
-Scripts). A `fcntl` file lock (`/data/.lock`) serialises overlapping runs.
+Scripts). A `fcntl` file lock (`/data/.lock`) serialises overlapping runs. Every run
+touches `/data/.last_run`; the Docker `HEALTHCHECK` calls
+`pocketlog-import --healthcheck`, unhealthy once the heartbeat exceeds
+~2 cron intervals.
 
 ## Project structure
 ```
@@ -36,8 +39,12 @@ bank_importer/
 ├─ __init__.py          ← __version__ (baked from APP_VERSION at build)
 ├─ __main__.py / cli.py ← entry point; --once / --dry-run / --config
 ├─ config.py            ← pydantic AppConfig; loads config.yaml + ENV (secrets)
+├─ health.py            ← heartbeat freshness check (--healthcheck, Docker
+│                         HEALTHCHECK; threshold = 2× cron interval, 5min floor)
 ├─ logging_config.py    ← configure_logging(): stderr + optional rotating LOG_FILE
 ├─ models.py            ← NormalizedTransaction (amount>0, type in/out)
+├─ notify.py            ← run-outcome push notifications (Gotify-compatible:
+│                         PushBits/Gotify); best-effort, never affects the run
 ├─ parsing.py           ← PURE helpers: decode_bytes, parse_amount, parse_date,
 │                         guard_csv_field (formula-injection guard)
 ├─ rules.py             ← regex whitelist engine; apply_rules → (matched, unmatched)
@@ -45,7 +52,8 @@ bank_importer/
 ├─ scheduler.py         ← cron loop, SIGTERM-aware
 ├─ parsers/             ← base.py (Protocol), __init__ (registry+detect),
 │                         easybank.py, dadat.py
-└─ exporters/pocketlog.py ← serialize_csv() + serialize_unmatched() + PocketLogClient (httpx)
+└─ exporters/pocketlog.py ← serialize_csv() + serialize_unmatched() + PocketLogClient
+                            (httpx; retries transient failures w/ backoff)
 config/                 ← *.example.yaml (real files mounted at /config, gitignored)
 docker/                 ← Dockerfile, docker-entrypoint.sh (PUID/PGID+gosu), compose
 tests/                  ← pytest + fixtures/ (real-bank sample CSVs)
@@ -75,13 +83,19 @@ to PUID/PGID and drops via gosu.
   Response `{imported, skipped, deduped, errors:[{row,code,params}]}`.
 - **Dedup is server-side** (hash of date|amount|description|type) → re-runs are
   idempotent; the importer keeps no own dedup state.
+- **Transient failures are retried** by `PocketLogClient` (network errors, 5xx,
+  429; exponential backoff, 4 attempts). 4xx is permanent — no retry. Retrying
+  a whole upload is safe because of the server-side dedup.
 
 ## Conventions
 - **English everywhere** (code, comments, docs, commits, logs).
 - Python 3.12; `ruff` lint+format (`ruff.toml`, line 88, select E/W/F/I/UP/B).
 - Pure helpers in `parsing.py` (data-in, no I/O) — unit-tested. I/O/orchestration
   in `pipeline.py`/`cli.py`.
-- Secrets via ENV only (`POCKETLOG_API_KEY`), never in YAML; never logged.
+- Secrets via ENV only (`POCKETLOG_API_KEY`, `NOTIFY_TOKEN`), never in YAML;
+  never logged (the notify token travels as a query param — never log URLs).
+- Notifications (`notify.py`) are best-effort and content-minimal: counters
+  and filenames only, never booking text. Dry-runs and idle runs never notify.
 - Never commit real `config.yaml`/`rules.yaml` or bank data (`.gitignore`).
 - New bank: add a parser (`sniff`+`parse`), register in `parsers/__init__.py`,
   add a fixture test. Whitelist semantics: no rule match ⇒ booking dropped (no
