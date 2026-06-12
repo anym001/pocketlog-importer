@@ -69,6 +69,14 @@ Three equivalent ways to run the pipeline:
 The `--once` path is ideal for **Unraid User Scripts**. A file lock prevents a
 manual run from overlapping with a scheduler tick.
 
+### Container health
+
+Every run (idle ones included) touches a heartbeat file. The image's
+`HEALTHCHECK` runs `pocketlog-import --healthcheck`, which reports unhealthy
+once the heartbeat is older than ~2 cron intervals — so a wedged scheduler
+shows up directly in `docker ps` / the Unraid dashboard instead of going
+unnoticed. The threshold adapts to `schedule.cron` automatically.
+
 ## Configuration
 
 `config/config.yaml` — see [`config/config.example.yaml`](config/config.example.yaml).
