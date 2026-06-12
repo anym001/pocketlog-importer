@@ -38,13 +38,14 @@ bank_importer/
 ├─ config.py            ← pydantic AppConfig; loads config.yaml + ENV (secrets)
 ├─ logging_config.py    ← configure_logging(): stderr + optional rotating LOG_FILE
 ├─ models.py            ← NormalizedTransaction (amount>0, type in/out)
-├─ parsing.py           ← PURE helpers: decode_bytes, parse_amount, parse_date
+├─ parsing.py           ← PURE helpers: decode_bytes, parse_amount, parse_date,
+│                         guard_csv_field (formula-injection guard)
 ├─ rules.py             ← regex whitelist engine; apply_rules → (matched, unmatched)
 ├─ pipeline.py          ← orchestration + file lock + processed/failed/heartbeat
 ├─ scheduler.py         ← cron loop, SIGTERM-aware
 ├─ parsers/             ← base.py (Protocol), __init__ (registry+detect),
 │                         easybank.py, dadat.py
-└─ exporters/pocketlog.py ← serialize_csv() + PocketLogClient (httpx)
+└─ exporters/pocketlog.py ← serialize_csv() + serialize_unmatched() + PocketLogClient (httpx)
 config/                 ← *.example.yaml (real files mounted at /config, gitignored)
 docker/                 ← Dockerfile, docker-entrypoint.sh (PUID/PGID+gosu), compose
 tests/                  ← pytest + fixtures/ (real-bank sample CSVs)
