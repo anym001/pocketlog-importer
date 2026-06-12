@@ -38,6 +38,8 @@ bank_importer/
 ├─ config.py            ← pydantic AppConfig; loads config.yaml + ENV (secrets)
 ├─ logging_config.py    ← configure_logging(): stderr + optional rotating LOG_FILE
 ├─ models.py            ← NormalizedTransaction (amount>0, type in/out)
+├─ notify.py            ← run-outcome push notifications (Gotify-compatible:
+│                         PushBits/Gotify); best-effort, never affects the run
 ├─ parsing.py           ← PURE helpers: decode_bytes, parse_amount, parse_date,
 │                         guard_csv_field (formula-injection guard)
 ├─ rules.py             ← regex whitelist engine; apply_rules → (matched, unmatched)
@@ -85,7 +87,10 @@ to PUID/PGID and drops via gosu.
 - Python 3.12; `ruff` lint+format (`ruff.toml`, line 88, select E/W/F/I/UP/B).
 - Pure helpers in `parsing.py` (data-in, no I/O) — unit-tested. I/O/orchestration
   in `pipeline.py`/`cli.py`.
-- Secrets via ENV only (`POCKETLOG_API_KEY`), never in YAML; never logged.
+- Secrets via ENV only (`POCKETLOG_API_KEY`, `NOTIFY_TOKEN`), never in YAML;
+  never logged (the notify token travels as a query param — never log URLs).
+- Notifications (`notify.py`) are best-effort and content-minimal: counters
+  and filenames only, never booking text. Dry-runs and idle runs never notify.
 - Never commit real `config.yaml`/`rules.yaml` or bank data (`.gitignore`).
 - New bank: add a parser (`sniff`+`parse`), register in `parsers/__init__.py`,
   add a fixture test. Whitelist semantics: no rule match ⇒ booking dropped (no
