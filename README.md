@@ -22,6 +22,8 @@ bank export ─▶ /data/input ─▶ parse ─▶ rules.yaml (whitelist) ─▶
    `*.unmatched.csv` for review so you can add a rule later.
 4. Matched bookings are written to `/data/output/<bank>-<ts>.csv` and imported
    via `POST /api/import/csv`. PocketLog deduplicates, so re-runs are safe.
+   Transient API failures (network errors, 5xx, 429) are retried with
+   exponential backoff before a file counts as failed.
 5. The processed original is moved to `/data/processed/`. Files that fail to
    parse or import go to `/data/failed/`.
 
@@ -67,6 +69,14 @@ Three equivalent ways to run the pipeline:
 The `--once` path is ideal for **Unraid User Scripts**. A file lock prevents a
 manual run from overlapping with a scheduler tick.
 
+### Container health
+
+Every run (idle ones included) touches a heartbeat file. The image's
+`HEALTHCHECK` runs `pocketlog-import --healthcheck`, which reports unhealthy
+once the heartbeat is older than ~2 cron intervals — so a wedged scheduler
+shows up directly in `docker ps` / the Unraid dashboard instead of going
+unnoticed. The threshold adapts to `schedule.cron` automatically.
+
 ## Configuration
 
 `config/config.yaml` — see [`config/config.example.yaml`](config/config.example.yaml).
@@ -89,12 +99,34 @@ rules:
 
 Rules are evaluated top to bottom; the **first** matching rule wins.
 
+### Notifications
+
+Optional push notifications about run outcomes via any **Gotify-compatible**
+endpoint — this includes [PushBits](https://github.com/pushbits/server)
+(relays to Matrix) and Gotify itself. Off unless `notify.url` is set:
+
+```yaml
+notify:
+  type: gotify                       # PushBits + Gotify
+  url: https://pushbits.example.com
+  events: problems                   # problems (default) | always
+```
+
+The application token goes into the `NOTIFY_TOKEN` environment variable —
+never into YAML. `events: problems` notifies only on failed files, unmatched
+bookings, or a crashed run (high priority); `events: always` also reports
+clean runs. Idle runs (empty input directory) and dry-runs never notify, and
+notifications carry only counters and filenames — no booking data.
+Notification delivery is best-effort: a failed push is logged and never
+affects the import itself.
+
 ## Environment variables
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `POCKETLOG_API_KEY` | — | **Required** for real imports (`import` scope key) |
 | `POCKETLOG_BASE_URL` | — | Optional override of `pocketlog.base_url` |
+| `NOTIFY_TOKEN` | — | Application token for `notify.url` (PushBits/Gotify) |
 | `PUID` / `PGID` | `1000` | Ownership of `/config` + `/data` (Unraid: `99` / `100`) |
 | `LOG_LEVEL` | `INFO` | Log verbosity |
 | `LOG_FILE` | — | Optional rotating log file, e.g. `/config/logs/importer.log` |

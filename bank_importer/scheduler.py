@@ -16,13 +16,18 @@ from croniter import croniter
 
 from .config import AppConfig
 from .logging_config import get_logger
+from .notify import GotifyNotifier, notify_crash, notify_run
 from .pipeline import run
 from .rules import Rule
 
 log = get_logger("scheduler")
 
 
-def run_scheduler(config: AppConfig, rules: list[Rule]) -> None:
+def run_scheduler(
+    config: AppConfig,
+    rules: list[Rule],
+    notifier: GotifyNotifier | None = None,
+) -> None:
     stop = threading.Event()
 
     def _handle_signal(signum, _frame):
@@ -38,7 +43,7 @@ def run_scheduler(config: AppConfig, rules: list[Rule]) -> None:
 
     log.info("Scheduler started with cron %r", cron)
     # Run once immediately on startup, then follow the schedule.
-    _safe_run(config, rules)
+    _safe_run(config, rules, notifier)
 
     itr = croniter(cron, datetime.now())
     while not stop.is_set():
@@ -48,13 +53,18 @@ def run_scheduler(config: AppConfig, rules: list[Rule]) -> None:
             # Wake early on stop; loop re-checks the time otherwise.
             if stop.wait(timeout=wait):
                 break
-        _safe_run(config, rules)
+        _safe_run(config, rules, notifier)
 
     log.info("Scheduler stopped")
 
 
-def _safe_run(config: AppConfig, rules: list[Rule]) -> None:
+def _safe_run(
+    config: AppConfig, rules: list[Rule], notifier: GotifyNotifier | None
+) -> None:
     try:
-        run(config, rules, dry_run=config.options.dry_run)
-    except Exception:  # noqa: BLE001 - the scheduler must keep running
+        summary = run(config, rules, dry_run=config.options.dry_run)
+    except Exception as exc:  # noqa: BLE001 - the scheduler must keep running
         log.exception("Scheduled run failed")
+        notify_crash(notifier, exc)
+    else:
+        notify_run(notifier, config.notify.events, summary)
