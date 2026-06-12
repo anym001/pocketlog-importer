@@ -22,6 +22,8 @@ bank export ─▶ /data/input ─▶ parse ─▶ rules.yaml (whitelist) ─▶
    `*.unmatched.csv` for review so you can add a rule later.
 4. Matched bookings are written to `/data/output/<bank>-<ts>.csv` and imported
    via `POST /api/import/csv`. PocketLog deduplicates, so re-runs are safe.
+   Transient API failures (network errors, 5xx, 429) are retried with
+   exponential backoff before a file counts as failed.
 5. The processed original is moved to `/data/processed/`. Files that fail to
    parse or import go to `/data/failed/`.
 
