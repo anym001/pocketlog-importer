@@ -29,9 +29,10 @@ RUN chmod +x /docker-entrypoint.sh
 # Persistent state (PocketLog /config convention) + the work directories.
 VOLUME ["/config", "/data"]
 
-# Healthcheck: the heartbeat file must be fresh-ish (updated every run).
-HEALTHCHECK --interval=5m --timeout=10s --start-period=30s --retries=3 \
-  CMD test -f /data/.last_run || exit 1
+# Healthcheck: the run heartbeat must be fresher than ~2 cron intervals;
+# `--healthcheck` derives the threshold from schedule.cron in config.yaml.
+HEALTHCHECK --interval=5m --timeout=10s --start-period=2m --retries=3 \
+  CMD pocketlog-import --healthcheck || exit 1
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["pocketlog-import"]

@@ -41,6 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="write output CSVs but do not import via the API",
     )
     parser.add_argument(
+        "--healthcheck",
+        action="store_true",
+        help="exit 0 if the run heartbeat is fresh for the cron schedule, else 1",
+    )
+    parser.add_argument(
         "--version", action="version", version=f"pocketlog-import {__version__}"
     )
     return parser
@@ -49,6 +54,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     log = configure_logging()
+
+    if args.healthcheck:
+        return _healthcheck(args.config)
 
     try:
         config = load_config(args.config)
@@ -74,6 +82,21 @@ def main(argv: list[str] | None = None) -> int:
 
     run_scheduler(config, rules, notifier=notifier)
     return 0
+
+
+def _healthcheck(config_path: str) -> int:
+    """Docker HEALTHCHECK entry: stdout status line + exit code, no logging."""
+    from .health import check_heartbeat
+    from .pipeline import heartbeat_path
+
+    try:
+        config = load_config(config_path)
+        healthy, reason = check_heartbeat(heartbeat_path(config), config.schedule.cron)
+    except (OSError, ValueError) as exc:
+        print(f"unhealthy: {exc}")
+        return 1
+    print(("healthy: " if healthy else "unhealthy: ") + reason)
+    return 0 if healthy else 1
 
 
 if __name__ == "__main__":
