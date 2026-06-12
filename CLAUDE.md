@@ -49,7 +49,9 @@ bank_importer/
 config/                 ← *.example.yaml (real files mounted at /config, gitignored)
 docker/                 ← Dockerfile, docker-entrypoint.sh (PUID/PGID+gosu), compose
 tests/                  ← pytest + fixtures/ (real-bank sample CSVs)
-.github/workflows/      ← test.yml (PR/reusable), dev.yml (:dev), build.yml (release)
+│                         integration/ = contract tests vs. real PocketLog
+.github/workflows/      ← test.yml (PR/reusable), dev.yml (:dev), build.yml
+                          (release), contract.yml (nightly :latest/:dev drift)
 ```
 
 ## Runtime layout (container)
@@ -93,9 +95,22 @@ to PUID/PGID and drops via gosu.
 ## Local checks (= CI)
 ```
 ruff check . && ruff format --check . && pytest -q
+pytest -m integration   # contract tests; needs Docker (see below)
 ```
 
-## Verification (end-to-end)
+## Contract tests (the import boundary, automated)
+`tests/integration/` boots a real PocketLog container (`POCKETLOG_IMAGE`,
+default `ghcr.io/anym001/pocketlog:latest`), provisions admin + `import`-scope
+key via the public API, and runs the real pipeline against it. Pinned: full
+import round-trip (verified via `GET /api/export/csv`), dedup idempotency,
+the per-row error format `{row, code, params}` (only codes the importer logs),
+and scope/auth semantics (403/401). Excluded from the default `pytest -q` via
+marker `integration`. CI: PR gate against `:latest` (test.yml `contract` job);
+nightly drift run against `:latest` + `:dev` (contract.yml, runs from the
+default branch). A red nightly `:dev` = PocketLog is about to break the
+contract — fix it there before releasing.
+
+## Verification (manual end-to-end)
 Start a local PocketLog, create an `import`-scope API key, set
 `POCKETLOG_API_KEY`, point `pocketlog.base_url` at it, drop a bank CSV into
 `/data/input`, run `pocketlog-import --once`. Check PocketLog
