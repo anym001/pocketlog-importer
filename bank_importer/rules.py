@@ -23,6 +23,7 @@ class Rule:
     category: str | None = None
     tags: list[str] = field(default_factory=list)
     type: str | None = None  # optional override of in/out
+    bank: str | None = None  # restrict rule to one parser name; None = all banks
 
 
 def compile_rules(raw_rules: list[dict], *, ignorecase: bool = True) -> list[Rule]:
@@ -43,6 +44,9 @@ def compile_rules(raw_rules: list[dict], *, ignorecase: bool = True) -> list[Rul
         rule_type = raw.get("type")
         if rule_type is not None and rule_type not in ("in", "out"):
             raise ValueError(f"rule #{index + 1} 'type' must be 'in' or 'out'")
+        bank = raw.get("bank")
+        if bank is not None and not isinstance(bank, str):
+            raise ValueError(f"rule #{index + 1} 'bank' must be a string")
         rules.append(
             Rule(
                 pattern=pattern,
@@ -50,6 +54,7 @@ def compile_rules(raw_rules: list[dict], *, ignorecase: bool = True) -> list[Rul
                 category=raw.get("category"),
                 tags=[str(t) for t in tags],
                 type=rule_type,
+                bank=bank or None,
             )
         )
     return rules
@@ -65,17 +70,23 @@ def load_rules(path: str | Path) -> list[Rule]:
 
 
 def apply_rules(
-    transactions: list[NormalizedTransaction], rules: list[Rule]
+    transactions: list[NormalizedTransaction],
+    rules: list[Rule],
+    *,
+    bank: str | None = None,
 ) -> tuple[list[NormalizedTransaction], list[NormalizedTransaction]]:
     """Split transactions into ``(matched, unmatched)``.
 
     Matched transactions are enriched in place from the first matching rule.
     Unmatched transactions are returned untouched and must not be imported.
+    Rules with a ``bank`` field are skipped unless ``bank`` matches.
     """
     matched: list[NormalizedTransaction] = []
     unmatched: list[NormalizedTransaction] = []
     for tx in transactions:
         for rule in rules:
+            if rule.bank is not None and rule.bank != bank:
+                continue
             if rule.pattern.search(tx.raw_text):
                 tx.description = rule.description or tx.raw_text
                 if rule.category:
