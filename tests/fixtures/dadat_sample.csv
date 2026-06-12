@@ -1,4 +1,4 @@
 IBAN;Auszugsnummer;Buchungsdatum;Valutadatum;Umsatzzeit;Zahlungsreferenz;Waehrung;Betrag;Buchungstext;Umsatztext;Name des Partners;Name des ultimate Partners;Name des ultimate Auftraggebers;Creditor ID;Mandat ID;Kontoverbindung des Partners;Partner BIC;Auftraggeberreferenz;Verwendungszweck;Kategorie;Notiz;Original Auftragsbetrag;Original Währung;Bestandskategorie;Umsatzkategorie;Entgeltinformationen;Eigene Referenz
-AT000000000000000000;5;2026-05-15;2026-05-15;2026-05-15-13.00.48.155180;;EUR;-200,00;Debitkartenbeheb.EUR;BANKOMAT  00000000 K00 15.05.UM 13:00 ;;;;;;;;;;Bargeld;;;;;;;
-AT000000000000000000;5;2026-05-11;2026-05-09;2026-05-09-10.47.22.795933;;EUR;-200,00;Debitkartenbeheb.EUR;BANKOMAT  00000000 K00 09.05.UM 10:46 ;;;;;;;;;;Bargeld;;;;;;;
-AT000000000000000000;5;2026-05-11;2026-05-08;2026-05-09-06.25.32.593091;;EUR;-35,98;Bezahlen im Internet;DE       35,98 E-COMM 08.05.26 17:42 K00 SHOPBEISPIEL PAYMENTS GMBH 10243 BERLIN ;;;;;;;;;;Kleidung;;;;;;;
+AT000000000000000000;5;2026-05-15;2026-05-15;2026-05-15-13.00.48.155180;;EUR;-200,00;Debitkartenbeheb.EUR;BANKOMAT  00000000 K00 15.05.UM 13:00 ;;;;;;;;;;Cash;;;;;;;
+AT000000000000000000;5;2026-05-11;2026-05-09;2026-05-09-10.47.22.795933;;EUR;-200,00;Debitkartenbeheb.EUR;BANKOMAT  00000000 K00 09.05.UM 10:46 ;;;;;;;;;;Cash;;;;;;;
+AT000000000000000000;5;2026-05-11;2026-05-08;2026-05-09-06.25.32.593091;;EUR;-35,98;Online purchase;DE       35,98 E-COMM 08.05.26 17:42 K00 ONLINESHOP PAYMENTS LTD 10243 BERLIN ;;;;;;;;;;Clothing;;;;;;;

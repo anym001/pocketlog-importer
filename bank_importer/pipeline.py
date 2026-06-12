@@ -4,6 +4,11 @@ A single ``run()`` processes every CSV in the input directory. It is guarded by
 a file lock so a manual ``docker exec ... --once`` run never overlaps with a
 scheduler tick. Re-runs are safe because PocketLog deduplicates imports and the
 move into ``processed/`` is atomic.
+
+Originals are archived under a per-run subdirectory
+(``processed/<run-ts>/<original-name>`` resp. ``failed/<run-ts>/...``), so the
+original filename is never rewritten and re-running a file can never overwrite
+an earlier archive.
 """
 
 from __future__ import annotations
@@ -80,7 +85,7 @@ def _file_lock(path: Path):
 
 
 def _timestamp() -> str:
-    return datetime.now().strftime("%Y%m%d-%H%M%S")
+    return datetime.now().strftime("%Y%m%d-%H%M%S-%f")
 
 
 def _write_unmatched(
@@ -95,9 +100,15 @@ def _write_unmatched(
     log.info("Wrote %d unmatched bookings to %s", len(unmatched), safe(target.name))
 
 
-def _move(src: Path, dest_dir: Path, ts: str) -> None:
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    src.replace(dest_dir / f"{ts}-{src.name}")
+def _archive(src: Path, dest_dir: Path, run_ts: str) -> None:
+    """Move a file into a per-run subdirectory, keeping its original name.
+
+    Input filenames are unique within a run and ``run_ts`` is unique across
+    runs, so nothing is ever overwritten and names never accumulate prefixes.
+    """
+    run_dir = dest_dir / run_ts
+    run_dir.mkdir(parents=True, exist_ok=True)
+    src.replace(run_dir / src.name)
 
 
 def _process_file(
@@ -105,6 +116,7 @@ def _process_file(
     config: AppConfig,
     rules: list[Rule],
     client: PocketLogClient | None,
+    run_ts: str,
 ) -> FileResult:
     """Parse, filter, export and archive a single CSV; return its counts."""
     result = FileResult()
@@ -114,12 +126,12 @@ def _process_file(
     parser = detect_parser(path.name, first_line, config.banks)
     if parser is None:
         log.warning("No parser matched %s — moving to failed/", safe(path.name))
-        _move(path, config.paths.failed, _timestamp())
+        _archive(path, config.paths.failed, run_ts)
         result.failed = True
         return result
 
     transactions = parser.parse(text)
-    matched, unmatched = apply_rules(transactions, rules)
+    matched, unmatched = apply_rules(transactions, rules, bank=parser.name)
     result.parsed = len(transactions)
     result.matched = len(matched)
     result.unmatched = len(unmatched)
@@ -162,7 +174,7 @@ def _process_file(
                     safe(err.get("params", "")),
                 )
 
-    _move(path, config.paths.processed, ts)
+    _archive(path, config.paths.processed, run_ts)
     return result
 
 
@@ -190,17 +202,18 @@ def run(config: AppConfig, rules: list[Rule], *, dry_run: bool = False) -> RunSu
 
     try:
         with _file_lock(input_dir.parent / _LOCK_NAME):
+            run_ts = _timestamp()
             for path in files:
                 summary.files += 1
                 try:
-                    result = _process_file(path, config, rules, client)
+                    result = _process_file(path, config, rules, client, run_ts)
                 except Exception:  # noqa: BLE001 - isolate per-file failures
                     log.exception(
                         "Failed to process %s — moving to failed/", safe(path.name)
                     )
                     summary.failed_files.append(path.name)
                     try:
-                        _move(path, config.paths.failed, _timestamp())
+                        _archive(path, config.paths.failed, run_ts)
                     except OSError:
                         log.exception("Could not move %s to failed/", safe(path.name))
                 else:

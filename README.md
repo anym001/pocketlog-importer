@@ -79,11 +79,12 @@ The PocketLog **API key is never stored in YAML**; provide it via the
 
 ```yaml
 rules:
-  - match: "MUSIKBEISPIEL"          # regex, case-insensitive, tested against booking text
-    description: "Musikbeispiel"     # overrides description (default: raw booking text)
-    category: "Freizeit"       # PocketLog category (auto-created if new)
-    tags: [abo]                # tags (auto-created if new)
-    # type: in                 # optional, overrides the amount-sign direction
+  - match: "STREAMINGCO"            # regex, case-insensitive, tested against booking text
+    description: "Streaming Service" # overrides description (default: raw booking text)
+    category: "Entertainment"        # PocketLog category (auto-created if new)
+    tags: [subscription]             # tags (auto-created if new)
+    # type: in                       # optional, overrides the amount-sign direction
+    # bank: easybank                 # optional, restrict to one parser
 ```
 
 Rules are evaluated top to bottom; the **first** matching rule wins.
@@ -107,8 +108,8 @@ Rules are evaluated top to bottom; the **first** matching rule wins.
 | `/config` | `config.yaml`, `rules.yaml`, optional `logs/` |
 | `/data/input` | drop bank CSVs here |
 | `/data/output` | generated PocketLog CSVs + `*.unmatched.csv` |
-| `/data/processed` | successfully processed originals (timestamped) |
-| `/data/failed` | files that failed to parse or import |
+| `/data/processed` | successfully processed originals, one subdirectory per run |
+| `/data/failed` | files that failed to parse or import, one subdirectory per run |
 
 ## Supported banks
 
