@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, Field
@@ -19,6 +20,20 @@ class PocketLogConfig(BaseModel):
     verify_tls: bool = True
     # Populated from POCKETLOG_API_KEY at load time; never stored in YAML.
     api_key: str | None = None
+
+
+class NotifyConfig(BaseModel):
+    """Push notifications for run outcomes. Off unless ``url`` is set."""
+
+    # "gotify" covers every Gotify-compatible endpoint, including PushBits.
+    type: Literal["gotify"] = "gotify"
+    url: str | None = None
+    # "problems" = only failed/unmatched runs and crashes; "always" also
+    # reports clean runs (idle runs without input files never notify).
+    events: Literal["problems", "always"] = "problems"
+    verify_tls: bool = True
+    # Populated from NOTIFY_TOKEN at load time; never stored in YAML.
+    token: str | None = None
 
 
 class ScheduleConfig(BaseModel):
@@ -47,6 +62,7 @@ class AppConfig(BaseModel):
     paths: PathsConfig = Field(default_factory=PathsConfig)
     banks: list[BankMapping] = Field(default_factory=list)
     options: Options = Field(default_factory=Options)
+    notify: NotifyConfig = Field(default_factory=NotifyConfig)
     rules_file: Path = Path("/config/rules.yaml")
 
 
@@ -62,5 +78,8 @@ def load_config(path: str | Path) -> AppConfig:
     base_url = os.getenv("POCKETLOG_BASE_URL")
     if base_url:
         config.pocketlog.base_url = base_url
+    notify_token = os.getenv("NOTIFY_TOKEN")
+    if notify_token:
+        config.notify.token = notify_token
 
     return config

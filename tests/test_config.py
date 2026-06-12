@@ -40,9 +40,19 @@ def test_load_config(tmp_path, monkeypatch):
 def test_env_overrides(tmp_path, monkeypatch):
     monkeypatch.setenv("POCKETLOG_API_KEY", "plk_from_env")
     monkeypatch.setenv("POCKETLOG_BASE_URL", "https://override.example.com")
+    monkeypatch.setenv("NOTIFY_TOKEN", "pb_from_env")
     config = load_config(_write(tmp_path))
     assert config.pocketlog.api_key == "plk_from_env"
     assert config.pocketlog.base_url == "https://override.example.com"
+    assert config.notify.token == "pb_from_env"
+
+
+def test_notify_defaults_off(tmp_path, monkeypatch):
+    monkeypatch.delenv("NOTIFY_TOKEN", raising=False)
+    config = load_config(_write(tmp_path))
+    assert config.notify.url is None
+    assert config.notify.events == "problems"
+    assert config.notify.token is None
 
 
 def test_missing_required_field(tmp_path):
