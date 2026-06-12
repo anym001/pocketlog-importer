@@ -45,7 +45,8 @@ bank_importer/
 ├─ scheduler.py         ← cron loop, SIGTERM-aware
 ├─ parsers/             ← base.py (Protocol), __init__ (registry+detect),
 │                         easybank.py, dadat.py
-└─ exporters/pocketlog.py ← serialize_csv() + serialize_unmatched() + PocketLogClient (httpx)
+└─ exporters/pocketlog.py ← serialize_csv() + serialize_unmatched() + PocketLogClient
+                            (httpx; retries transient failures w/ backoff)
 config/                 ← *.example.yaml (real files mounted at /config, gitignored)
 docker/                 ← Dockerfile, docker-entrypoint.sh (PUID/PGID+gosu), compose
 tests/                  ← pytest + fixtures/ (real-bank sample CSVs)
@@ -75,6 +76,9 @@ to PUID/PGID and drops via gosu.
   Response `{imported, skipped, deduped, errors:[{row,code,params}]}`.
 - **Dedup is server-side** (hash of date|amount|description|type) → re-runs are
   idempotent; the importer keeps no own dedup state.
+- **Transient failures are retried** by `PocketLogClient` (network errors, 5xx,
+  429; exponential backoff, 4 attempts). 4xx is permanent — no retry. Retrying
+  a whole upload is safe because of the server-side dedup.
 
 ## Conventions
 - **English everywhere** (code, comments, docs, commits, logs).
