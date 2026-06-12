@@ -11,39 +11,52 @@
 #   category     PocketLog category name (auto-created if new)
 #   tags         list of tag names (auto-created if new)
 #   type         optional override "in"/"out" (default: from the amount sign)
+#   bank         restrict rule to one parser: "easybank" or "dadat" (default: all)
 
 rules:
-  - match: "MUSIKBEISPIEL"
-    description: "Musikbeispiel Premium"
-    category: "Freizeit"
-    tags: [abo]
+  # Income: type: in forces the direction regardless of the sign in the CSV
+  - match: "EMPLOYER|PAYROLL"
+    description: "Salary"
+    category: "Income"
+    type: in
 
-  - match: "VIDEOBEISPIEL"
-    description: "Videobeispiel"
-    category: "Freizeit"
-    tags: [abo]
+  - match: "STREAMINGCO"
+    description: "Streaming Service"
+    category: "Entertainment"
+    tags: [subscription]
 
-  - match: "Mobilbeispiel"
-    description: "Mobilbeispiel Mobilfunk"
+  - match: "VIDEOSERVICE"
+    description: "Video Service"
+    category: "Entertainment"
+    tags: [subscription]
+
+  # No description: the raw bank text is used as the description
+  - match: "MOBILECARRIER"
     category: "Internet"
-    tags: [fixkosten]
+    tags: [recurring]
 
-  - match: "Strombeispiel"
-    description: "Strom"
-    category: "Wohnen"
-    tags: [fixkosten]
+  - match: "ELECTRICITYCO"
+    description: "Electricity"
+    category: "Housing"
+    tags: [recurring]
 
-  - match: "Mietbeispiel"
-    description: "Miete"
-    category: "Wohnen"
-    tags: [fixkosten]
+  - match: "RENTINGCO"
+    description: "Rent"
+    category: "Housing"
+    tags: [recurring, rent]
 
-  - match: "SHOPBEISPIEL"
-    description: "Shopbeispiel"
-    category: "Kleidung"
+  - match: "ONLINESHOP"
+    description: "Online Shop"
+    category: "Clothing"
     tags: [shopping]
 
-  - match: "Debitkartenbeheb|BANKOMAT"
-    description: "Bargeldbehebung"
-    category: "Bargeld"
-    tags: [bargeld]
+  - match: "ATM|CASHWITHDRAWAL"
+    description: "Cash withdrawal"
+    category: "Cash"
+    tags: [cash]
+
+  # bank: restricts the rule to a specific bank
+  - match: "INTERNALBOOKING"
+    description: "Internal booking"
+    category: "Miscellaneous"
+    bank: easybank
