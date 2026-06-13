@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from bank_importer.config import load_config, validate_config
+from pocketlog_importer.config import load_config, validate_config
 
 _YAML = """
 pocketlog:
@@ -122,7 +122,7 @@ def test_validate_known_parser(tmp_path, monkeypatch):
 
 def test_validate_warns_empty_banks(tmp_path, monkeypatch, caplog):
     config = _config(tmp_path, monkeypatch)
-    with caplog.at_level(logging.WARNING, logger="bank_importer.config"):
+    with caplog.at_level(logging.WARNING, logger="pocketlog_importer.config"):
         validate_config(config, dry_run=True)
     assert any("No bank mappings" in r.message for r in caplog.records)
 
@@ -132,6 +132,6 @@ def test_validate_warns_notify_url_without_token_in_dry_run(
 ):
     extra = "\nnotify:\n  url: https://push.example.com\n"
     config = _config(tmp_path, monkeypatch, extra)
-    with caplog.at_level(logging.WARNING, logger="bank_importer.config"):
+    with caplog.at_level(logging.WARNING, logger="pocketlog_importer.config"):
         validate_config(config, dry_run=True)
     assert any("NOTIFY_TOKEN" in r.message for r in caplog.records)

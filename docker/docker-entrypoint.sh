@@ -29,11 +29,11 @@ mkdir -p /config/logs /data/input /data/processed /data/failed /data/output
 # before actual imports will work. rules.yaml ships a set of example rules.
 if [ ! -f /config/config.yaml ]; then
     cp /app/config/config.example.yaml /config/config.yaml
-    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING bank_importer /config/config.yaml was missing — copied from example. Edit pocketlog.base_url (and set POCKETLOG_API_KEY) before importing."
+    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING pocketlog_importer /config/config.yaml was missing — copied from example. Edit pocketlog.base_url (and set POCKETLOG_API_KEY) before importing."
 fi
 if [ ! -f /config/rules.yaml ]; then
     cp /app/config/rules.example.yaml /config/rules.yaml
-    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING bank_importer /config/rules.yaml was missing — copied from example. Edit the rules whitelist before importing."
+    echo "$(date '+%Y-%m-%d %H:%M:%S') WARNING pocketlog_importer /config/rules.yaml was missing — copied from example. Edit the rules whitelist before importing."
 fi
 
 chown -R "${PUID}:${PGID}" /config /data
