@@ -1,4 +1,4 @@
-# PocketLog Bank Importer
+# PocketLog Importer
 
 A small Docker container that turns bank CSV exports (**easybank**, **dadat**)
 into [PocketLog](https://github.com/anym001/pocketlog) transactions. You drop a
