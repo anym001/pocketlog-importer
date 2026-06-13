@@ -12,7 +12,7 @@ import argparse
 import sys
 
 from . import __version__
-from .config import load_config
+from .config import load_config, validate_config
 from .logging_config import configure_logging
 from .notify import build_notifier, notify_run
 from .rules import load_rules
@@ -64,6 +64,9 @@ def main(argv: list[str] | None = None) -> int:
         # CLI flag wins over config; merge once so both run modes read one
         # value. Dry-run never notifies — its point is "no side effects".
         config.options.dry_run = args.dry_run or config.options.dry_run
+        # Single startup gate for cross-field config sanity (cron, API key,
+        # bank mappings); logs warnings for workable-but-odd settings.
+        validate_config(config, dry_run=config.options.dry_run)
         notifier = None if config.options.dry_run else build_notifier(config.notify)
     except (OSError, ValueError) as exc:
         log.error("Configuration error: %s", exc)
