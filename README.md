@@ -159,10 +159,11 @@ Adding a bank = a new parser in `bank_importer/parsers/` (implement `sniff` +
 
 ```sh
 python -m venv .venv && . .venv/bin/activate
-pip install -r requirements-dev.txt
-pip install -e .
-ruff check . && ruff format --check . && pytest -q
+pip install -r requirements-dev.txt && pip install -e .
 ```
+
+Lint and test commands (= CI) and the branching/release flow are in
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ### Contract tests
 
@@ -179,8 +180,6 @@ POCKETLOG_IMAGE=ghcr.io/anym001/pocketlog:dev pytest -m integration
 CI runs them on every PR against the released image, and nightly against
 `:latest` + `:dev` (`contract.yml`) to catch contract drift from the PocketLog
 side before it is released.
-
-Branching and release flow: see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 
