@@ -46,7 +46,7 @@ bank export ─▶ /data/input ─▶ parse ─▶ rules.yaml (whitelist) ─▶
 3. Drop a bank CSV into `data/input/`. The scheduler picks it up; or trigger it
    immediately:
    ```sh
-   docker exec pocketlog-bank-importer pocketlog-import --once
+   docker exec pocketlog-importer pocketlog-import --once
    ```
 
 ### Try it safely first (dry-run)
@@ -54,7 +54,7 @@ bank export ─▶ /data/input ─▶ parse ─▶ rules.yaml (whitelist) ─▶
 `--dry-run` writes the output CSVs but does **not** import anything:
 
 ```sh
-docker exec pocketlog-bank-importer pocketlog-import --once --dry-run
+docker exec pocketlog-importer pocketlog-import --once --dry-run
 ```
 
 ## Triggering
@@ -64,7 +64,7 @@ Three equivalent ways to run the pipeline:
 | Method | Command |
 |---|---|
 | Automatic | internal scheduler (`schedule.cron` in `config.yaml`) |
-| On demand | `docker exec pocketlog-bank-importer pocketlog-import --once` |
+| On demand | `docker exec pocketlog-importer pocketlog-import --once` |
 | Test | `... pocketlog-import --once --dry-run` |
 
 The `--once` path is ideal for **Unraid User Scripts**. A file lock prevents a
@@ -152,7 +152,7 @@ affects the import itself.
 | easybank | `EASYBANK_Umsatzliste_*.csv` | no header, 6 cols, `DD.MM.YYYY`, `-13,99` |
 | dadat | `umsaetzegirokonto_*.csv` | header, 27 cols, `YYYY-MM-DD`, `-200,00` |
 
-Adding a bank = a new parser in `bank_importer/parsers/` (implement `sniff` +
+Adding a bank = a new parser in `pocketlog_importer/parsers/` (implement `sniff` +
 `parse`) registered in `parsers/__init__.py`.
 
 ## Development

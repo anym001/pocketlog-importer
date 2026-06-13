@@ -35,7 +35,7 @@ touches `/data/.last_run`; the Docker `HEALTHCHECK` calls
 
 ## Project structure
 ```
-bank_importer/
+pocketlog_importer/
 ├─ __init__.py          ← __version__ (baked from APP_VERSION at build)
 ├─ __main__.py / cli.py ← entry point; --once / --dry-run / --config
 ├─ config.py            ← pydantic AppConfig; loads config.yaml + ENV (secrets)
