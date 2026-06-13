@@ -35,6 +35,6 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/pocketlog-importer:dev
             ghcr.io/${{ github.repository_owner }}/pocketlog-importer:dev-${{ steps.sha.outputs.short }}
           build-args: |
-            APP_VERSION=dev-${{ steps.sha.outputs.short }}
+            APP_VERSION=0.0.0.dev0+${{ steps.sha.outputs.short }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
