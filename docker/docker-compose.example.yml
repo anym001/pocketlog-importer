@@ -9,6 +9,8 @@ services:
       PUID: "1000"
       PGID: "1000"
       LOG_LEVEL: "INFO"
+      # Log format: "text" (default) or "json" (one JSON object per line):
+      LOG_FORMAT: "text"
       # Optional persistent log file (rotates):
       LOG_FILE: "/config/logs/importer.log"
     volumes:
