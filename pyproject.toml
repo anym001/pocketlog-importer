@@ -4,7 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pocketlog-importer"
-version = "0.0.0"
+# Single source of truth: the version is read from pocketlog_importer.__version__,
+# which the Docker build bakes from the git tag (APP_VERSION). Local/dev checkouts
+# report the placeholder below.
+dynamic = ["version"]
 description = "Parse bank CSV exports (easybank, dadat) and import them into PocketLog."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -21,6 +24,9 @@ dependencies = [
 
 [project.scripts]
 pocketlog-import = "pocketlog_importer.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "pocketlog_importer.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["pocketlog_importer*"]
