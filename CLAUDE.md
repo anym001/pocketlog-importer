@@ -1,4 +1,4 @@
-# PocketLog Bank Importer – Claude Code Project Context
+# PocketLog Importer – Claude Code Project Context
 
 ## Purpose
 A small Docker container that parses bank CSV exports (easybank, dadat),

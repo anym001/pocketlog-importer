@@ -1,4 +1,4 @@
-# PocketLog bank importer — example configuration.
+# PocketLog importer — example configuration.
 #
 # Copy to /config/config.yaml and adjust. The API key is NOT stored here; set
 # it via the POCKETLOG_API_KEY environment variable (create the key in the
