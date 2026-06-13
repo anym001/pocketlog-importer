@@ -1,6 +1,6 @@
 # PocketLog Importer
 
-[![test](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml/badge.svg)](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml)
+[![tests](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml/badge.svg)](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/anym001/pocketlog-importer)](https://github.com/anym001/pocketlog-importer/releases)
 [![GHCR](https://img.shields.io/badge/GHCR-pocketlog--importer-2496ED?logo=docker&logoColor=white)](https://github.com/anym001/pocketlog-importer/pkgs/container/pocketlog-importer)
