@@ -30,19 +30,20 @@ bank export ─▶ /data/input ─▶ parse ─▶ rules.yaml (whitelist) ─▶
 ## Quick start
 
 1. **Create an API key** in PocketLog (UI → API keys) with the **`import`** scope.
-2. Copy the example config and rules:
+2. Prepare the host folders and start the container (see
+   `docker/docker-compose.example.yml`):
    ```sh
    mkdir -p config data/input
-   cp config/config.example.yaml config/config.yaml
-   cp config/rules.example.yaml  config/rules.yaml
-   ```
-   Edit `config/config.yaml` → set `pocketlog.base_url`. Edit `config/rules.yaml`
-   to match your bookings.
-3. Start the container (see `docker/docker-compose.example.yml`):
-   ```sh
    POCKETLOG_API_KEY=plk_xxx docker compose -f docker/docker-compose.example.yml up -d
    ```
-4. Drop a bank CSV into `data/input/`. The scheduler picks it up; or trigger it
+   On first start the container seeds `config/config.yaml` and
+   `config/rules.yaml` from the bundled examples if they are missing (it logs a
+   WARNING). Then edit `config/config.yaml` → set `pocketlog.base_url`, edit
+   `config/rules.yaml` to match your bookings, and restart.
+   > To configure **before** the first start instead, copy the examples
+   > yourself: `cp config/config.example.yaml config/config.yaml` and
+   > `cp config/rules.example.yaml config/rules.yaml`.
+3. Drop a bank CSV into `data/input/`. The scheduler picks it up; or trigger it
    immediately:
    ```sh
    docker exec pocketlog-bank-importer pocketlog-import --once
