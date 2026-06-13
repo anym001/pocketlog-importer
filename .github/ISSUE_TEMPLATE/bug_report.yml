@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a problem with the PocketLog Importer
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report. Please fill out the
+        sections below. Never include real bank data — use anonymised samples
+        and redact secrets (API key, notification token) before pasting logs.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. drop CSV into /data/input ...
+        2. run pocketlog-import --once ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / image tag
+      placeholder: "e.g. v0.2.0 / :latest"
+    validations:
+      required: true
+  - type: dropdown
+    id: bank
+    attributes:
+      label: Bank format
+      options:
+        - easybank
+        - dadat
+        - other / new format
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Deployment (Compose / Unraid / docker exec), schedule, PocketLog version it imports into.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste relevant log output. Redact secrets (never paste URLs containing the notify token).
+      render: shell
