@@ -129,6 +129,7 @@ affects the import itself.
 | `NOTIFY_TOKEN` | — | Application token for `notify.url` (PushBits/Gotify) |
 | `PUID` / `PGID` | `1000` | Ownership of `/config` + `/data` (Unraid: `99` / `100`) |
 | `LOG_LEVEL` | `INFO` | Log verbosity |
+| `LOG_FORMAT` | `text` | Log format: `text` or `json` (one JSON object per line) |
 | `LOG_FILE` | — | Optional rotating log file, e.g. `/config/logs/importer.log` |
 | `LOG_FILE_MAX_BYTES` | `1048576` | Rotation size |
 | `LOG_FILE_BACKUPS` | `5` | Rotated copies kept |
