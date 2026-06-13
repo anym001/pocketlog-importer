@@ -1,8 +1,8 @@
 import httpx
 import pytest
 
-from bank_importer.exporters import PocketLogClient
-from bank_importer.exporters.pocketlog import PocketLogError
+from pocketlog_importer.exporters import PocketLogClient
+from pocketlog_importer.exporters.pocketlog import PocketLogError
 
 
 def _client(handler, **kwargs) -> PocketLogClient:

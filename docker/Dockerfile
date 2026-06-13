@@ -18,8 +18,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY pyproject.toml README.md ./
-COPY bank_importer ./bank_importer
-RUN sed -i "s|^__version__ = .*|__version__ = \"${APP_VERSION}\"|" bank_importer/__init__.py \
+COPY pocketlog_importer ./pocketlog_importer
+RUN sed -i "s|^__version__ = .*|__version__ = \"${APP_VERSION}\"|" pocketlog_importer/__init__.py \
  && pip install --no-cache-dir .
 
 COPY config/config.example.yaml config/rules.example.yaml /app/config/

@@ -1,8 +1,8 @@
 from datetime import date
 from decimal import Decimal
 
-from bank_importer.exporters import serialize_csv, serialize_unmatched
-from bank_importer.models import NormalizedTransaction
+from pocketlog_importer.exporters import serialize_csv, serialize_unmatched
+from pocketlog_importer.models import NormalizedTransaction
 
 
 def _tx(**kw) -> NormalizedTransaction:

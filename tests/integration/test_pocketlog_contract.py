@@ -21,11 +21,11 @@ from pathlib import Path
 import httpx
 import pytest
 
-from bank_importer.config import AppConfig, PathsConfig, PocketLogConfig
-from bank_importer.exporters import PocketLogClient
-from bank_importer.exporters.pocketlog import PocketLogError
-from bank_importer.pipeline import run
-from bank_importer.rules import compile_rules
+from pocketlog_importer.config import AppConfig, PathsConfig, PocketLogConfig
+from pocketlog_importer.exporters import PocketLogClient
+from pocketlog_importer.exporters.pocketlog import PocketLogError
+from pocketlog_importer.pipeline import run
+from pocketlog_importer.rules import compile_rules
 
 pytestmark = pytest.mark.integration
 

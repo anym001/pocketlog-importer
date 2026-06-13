@@ -2,8 +2,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from bank_importer.cli import main
-from bank_importer.health import check_heartbeat, max_heartbeat_age
+from pocketlog_importer.cli import main
+from pocketlog_importer.health import check_heartbeat, max_heartbeat_age
 
 _NOW = datetime(2026, 6, 12, 12, 30)
 

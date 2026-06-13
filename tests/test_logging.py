@@ -2,7 +2,7 @@ import json
 import logging
 import sys
 
-from bank_importer.logging_config import (
+from pocketlog_importer.logging_config import (
     LOGGER_NAME,
     JsonFormatter,
     configure_logging,
@@ -55,12 +55,14 @@ def test_safe_strips_control_chars_and_truncates():
 def test_safe_prevents_log_line_forging():
     # A crafted filename / API error value with CRLF must collapse to a single
     # line so it cannot inject a forged log record.
-    forged = "real.csv\n2099-01-01 00:00:00 ERROR bank_importer forged event"
+    forged = "real.csv\n2099-01-01 00:00:00 ERROR pocketlog_importer forged event"
     out = safe(forged)
     assert "\n" not in out and "\r" not in out
 
 
-def _record(msg, args=(), *, name="bank_importer.notify", level=logging.INFO, exc=None):
+def _record(
+    msg, args=(), *, name="pocketlog_importer.notify", level=logging.INFO, exc=None
+):
     return logging.LogRecord(name, level, "f.py", 1, msg, args, exc)
 
 
@@ -68,7 +70,7 @@ def test_json_formatter_fields_mirror_text():
     out = JsonFormatter().format(_record("Notification sent: %s", ("OK",)))
     data = json.loads(out)
     assert data["level"] == "INFO"
-    assert data["logger"] == "bank_importer.notify"
+    assert data["logger"] == "pocketlog_importer.notify"
     assert data["message"] == "Notification sent: OK"  # %-args applied
     assert "time" in data
     assert "exc_info" not in data  # only present when logging an exception
@@ -79,7 +81,7 @@ def test_json_formatter_includes_exception():
         raise ValueError("boom")
     except ValueError:
         rec = _record(
-            "crash", name="bank_importer", level=logging.ERROR, exc=sys.exc_info()
+            "crash", name="pocketlog_importer", level=logging.ERROR, exc=sys.exc_info()
         )
     data = json.loads(JsonFormatter().format(rec))
     assert "ValueError: boom" in data["exc_info"]

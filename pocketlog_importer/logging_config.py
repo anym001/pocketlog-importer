@@ -1,6 +1,6 @@
 """Central logging setup, mirroring PocketLog's conventions.
 
-Single ``bank_importer`` logger namespace with its own stderr handler (visible
+Single ``pocketlog_importer`` logger namespace with its own stderr handler (visible
 in ``docker logs``) and an optional rotating ``LOG_FILE``. The uniform format
 and second-precision datefmt match PocketLog so logs read consistently across
 both containers.
@@ -22,7 +22,7 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-LOGGER_NAME = "bank_importer"
+LOGGER_NAME = "pocketlog_importer"
 LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s %(message)s"
 DATEFMT = "%Y-%m-%d %H:%M:%S"
 
