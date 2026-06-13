@@ -1,8 +1,8 @@
 from datetime import date
 from decimal import Decimal
 
-from bank_importer.parsers import detect_parser, get_parser
-from bank_importer.parsing import decode_bytes
+from pocketlog_importer.parsers import detect_parser, get_parser
+from pocketlog_importer.parsing import decode_bytes
 
 
 def test_easybank_parse(easybank_csv):

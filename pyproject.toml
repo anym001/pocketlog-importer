@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pocketlog-bank-importer"
+name = "pocketlog-importer"
 version = "0.0.0"
 description = "Parse bank CSV exports (easybank, dadat) and import them into PocketLog."
 readme = "README.md"
@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-pocketlog-import = "bank_importer.cli:main"
+pocketlog-import = "pocketlog_importer.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["bank_importer*"]
+include = ["pocketlog_importer*"]
