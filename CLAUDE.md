@@ -41,7 +41,8 @@ bank_importer/
 ├─ config.py            ← pydantic AppConfig; loads config.yaml + ENV (secrets)
 ├─ health.py            ← heartbeat freshness check (--healthcheck, Docker
 │                         HEALTHCHECK; threshold = 2× cron interval, 5min floor)
-├─ logging_config.py    ← configure_logging(): stderr + optional rotating LOG_FILE
+├─ logging_config.py    ← configure_logging(): stderr + optional rotating LOG_FILE;
+│                         LOG_FORMAT text|json (same fields both ways)
 ├─ models.py            ← NormalizedTransaction (amount>0, type in/out)
 ├─ notify.py            ← run-outcome push notifications (Gotify-compatible:
 │                         PushBits/Gotify); best-effort, never affects the run
