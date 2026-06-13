@@ -181,6 +181,13 @@ side before it is released.
 
 Branching and release flow: see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
+## License
+
+Licensed under the GNU Affero General Public License v3.0 or later
+(AGPL-3.0-or-later), the same license as the companion
+[`pocketlog`](https://github.com/anym001/pocketlog) project. See
+[`LICENSE`](LICENSE) for the full text.
+
 ---
 
 Built with [Claude Code](https://claude.com/claude-code).
