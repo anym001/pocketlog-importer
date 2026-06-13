@@ -76,6 +76,7 @@ class GotifyNotifier:
         if response.status_code >= 400:
             log.warning("Notification failed: HTTP %d", response.status_code)
             return False
+        log.info("Notification sent: %s", notification.title)
         return True
 
     def close(self) -> None:
@@ -123,11 +124,14 @@ def notify_run(
 ) -> None:
     """Send the run outcome according to the configured event filter."""
     if notifier is None:
+        log.debug("Notifications disabled (no notifier configured)")
         return
     notification = compose_run_message(summary)
     if notification is None:
+        log.debug("Notification skipped: no input files processed")
         return
     if events == "problems" and not notification.problem:
+        log.debug("Notification skipped: events=problems but run was clean")
         return
     notifier.send(notification)
 
