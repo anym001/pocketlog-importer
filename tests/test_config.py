@@ -1,9 +1,10 @@
+import logging
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
-from bank_importer.config import load_config
+from pocketlog_importer.config import load_config, validate_config
 
 _YAML = """
 pocketlog:
@@ -60,3 +61,77 @@ def test_missing_required_field(tmp_path):
     cfg.write_text("schedule:\n  cron: '* * * * *'\n", encoding="utf-8")
     with pytest.raises(ValidationError):
         load_config(cfg)
+
+
+def test_malformed_yaml_raises_value_error(tmp_path):
+    # A YAML syntax error must surface as ValueError (clean CLI message),
+    # not an opaque yaml.YAMLError traceback.
+    cfg = tmp_path / "broken.yaml"
+    cfg.write_text("pocketlog: [unterminated\n", encoding="utf-8")
+    with pytest.raises(ValueError):
+        load_config(cfg)
+
+
+def _config(tmp_path, monkeypatch, extra="", *, api_key=None):
+    monkeypatch.delenv("POCKETLOG_API_KEY", raising=False)
+    monkeypatch.delenv("POCKETLOG_BASE_URL", raising=False)
+    monkeypatch.delenv("NOTIFY_TOKEN", raising=False)
+    if api_key:
+        monkeypatch.setenv("POCKETLOG_API_KEY", api_key)
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(_YAML + extra, encoding="utf-8")
+    return load_config(cfg)
+
+
+def test_validate_ok_dry_run(tmp_path, monkeypatch):
+    # Default _YAML is dry_run + no API key + no banks: valid in dry-run.
+    config = _config(tmp_path, monkeypatch)
+    validate_config(config, dry_run=True)  # does not raise
+
+
+def test_validate_invalid_cron(tmp_path, monkeypatch):
+    config = _config(tmp_path, monkeypatch)
+    config.schedule.cron = "not a cron"
+    with pytest.raises(ValueError, match="cron"):
+        validate_config(config, dry_run=True)
+
+
+def test_validate_missing_api_key_real_run(tmp_path, monkeypatch):
+    config = _config(tmp_path, monkeypatch)
+    with pytest.raises(ValueError, match="POCKETLOG_API_KEY"):
+        validate_config(config, dry_run=False)
+
+
+def test_validate_api_key_present_real_run(tmp_path, monkeypatch):
+    config = _config(tmp_path, monkeypatch, api_key="plk_real")
+    validate_config(config, dry_run=False)  # does not raise
+
+
+def test_validate_unknown_parser(tmp_path, monkeypatch):
+    extra = '\nbanks:\n  - match: "*.csv"\n    parser: nonsense\n'
+    config = _config(tmp_path, monkeypatch, extra)
+    with pytest.raises(ValueError, match="unknown parser"):
+        validate_config(config, dry_run=True)
+
+
+def test_validate_known_parser(tmp_path, monkeypatch):
+    extra = '\nbanks:\n  - match: "EASYBANK_*.csv"\n    parser: easybank\n'
+    config = _config(tmp_path, monkeypatch, extra)
+    validate_config(config, dry_run=True)  # does not raise
+
+
+def test_validate_warns_empty_banks(tmp_path, monkeypatch, caplog):
+    config = _config(tmp_path, monkeypatch)
+    with caplog.at_level(logging.WARNING, logger="pocketlog_importer.config"):
+        validate_config(config, dry_run=True)
+    assert any("No bank mappings" in r.message for r in caplog.records)
+
+
+def test_validate_warns_notify_url_without_token_in_dry_run(
+    tmp_path, monkeypatch, caplog
+):
+    extra = "\nnotify:\n  url: https://push.example.com\n"
+    config = _config(tmp_path, monkeypatch, extra)
+    with caplog.at_level(logging.WARNING, logger="pocketlog_importer.config"):
+        validate_config(config, dry_run=True)
+    assert any("NOTIFY_TOKEN" in r.message for r in caplog.records)

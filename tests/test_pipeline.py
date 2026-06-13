@@ -2,10 +2,10 @@ import re
 import shutil
 from pathlib import Path
 
-from bank_importer import pipeline
-from bank_importer.config import AppConfig, PathsConfig, PocketLogConfig
-from bank_importer.exporters.pocketlog import ImportResult
-from bank_importer.rules import compile_rules
+from pocketlog_importer import pipeline
+from pocketlog_importer.config import AppConfig, PathsConfig, PocketLogConfig
+from pocketlog_importer.exporters.pocketlog import ImportResult
+from pocketlog_importer.rules import compile_rules
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

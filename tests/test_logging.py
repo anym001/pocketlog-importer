@@ -1,6 +1,13 @@
+import json
 import logging
+import sys
 
-from bank_importer.logging_config import LOGGER_NAME, configure_logging, safe
+from pocketlog_importer.logging_config import (
+    LOGGER_NAME,
+    JsonFormatter,
+    configure_logging,
+    safe,
+)
 
 
 def _reset():
@@ -48,6 +55,59 @@ def test_safe_strips_control_chars_and_truncates():
 def test_safe_prevents_log_line_forging():
     # A crafted filename / API error value with CRLF must collapse to a single
     # line so it cannot inject a forged log record.
-    forged = "real.csv\n2099-01-01 00:00:00 ERROR bank_importer forged event"
+    forged = "real.csv\n2099-01-01 00:00:00 ERROR pocketlog_importer forged event"
     out = safe(forged)
     assert "\n" not in out and "\r" not in out
+
+
+def _record(
+    msg, args=(), *, name="pocketlog_importer.notify", level=logging.INFO, exc=None
+):
+    return logging.LogRecord(name, level, "f.py", 1, msg, args, exc)
+
+
+def test_json_formatter_fields_mirror_text():
+    out = JsonFormatter().format(_record("Notification sent: %s", ("OK",)))
+    data = json.loads(out)
+    assert data["level"] == "INFO"
+    assert data["logger"] == "pocketlog_importer.notify"
+    assert data["message"] == "Notification sent: OK"  # %-args applied
+    assert "time" in data
+    assert "exc_info" not in data  # only present when logging an exception
+
+
+def test_json_formatter_includes_exception():
+    try:
+        raise ValueError("boom")
+    except ValueError:
+        rec = _record(
+            "crash", name="pocketlog_importer", level=logging.ERROR, exc=sys.exc_info()
+        )
+    data = json.loads(JsonFormatter().format(rec))
+    assert "ValueError: boom" in data["exc_info"]
+
+
+def test_json_formatter_escapes_newlines():
+    # An embedded newline must stay inside the JSON string (one line out),
+    # so JSON output cannot be used to forge a second log record.
+    out = JsonFormatter().format(_record("line1\nline2"))
+    assert "\n" not in out
+    assert json.loads(out)["message"] == "line1\nline2"
+
+
+def test_configure_logging_selects_json(monkeypatch):
+    monkeypatch.delenv("LOG_FILE", raising=False)
+    monkeypatch.setenv("LOG_FORMAT", "json")
+    _reset()
+    logger = configure_logging()
+    assert all(isinstance(h.formatter, JsonFormatter) for h in logger.handlers)
+    _reset()
+
+
+def test_configure_logging_defaults_to_text(monkeypatch):
+    monkeypatch.delenv("LOG_FILE", raising=False)
+    monkeypatch.delenv("LOG_FORMAT", raising=False)
+    _reset()
+    logger = configure_logging()
+    assert all(not isinstance(h.formatter, JsonFormatter) for h in logger.handlers)
+    _reset()

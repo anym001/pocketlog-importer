@@ -1,4 +1,4 @@
-# Rules whitelist for the PocketLog bank importer.
+# Rules whitelist for the PocketLog importer.
 #
 # Each rule matches a REGEX (case-insensitive) against the booking text. The
 # FIRST matching rule wins — order matters. A booking that matches NO rule is

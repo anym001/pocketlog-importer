@@ -1,13 +1,13 @@
 """Central logging setup, mirroring PocketLog's conventions.
 
-Single ``bank_importer`` logger namespace with its own stderr handler (visible
+Single ``pocketlog_importer`` logger namespace with its own stderr handler (visible
 in ``docker logs``) and an optional rotating ``LOG_FILE``. The uniform format
 and second-precision datefmt match PocketLog so logs read consistently across
 both containers.
 
 ENV:
   LOG_LEVEL          default INFO
-  LOG_FORMAT         default "text" ("json" reserved, falls back to text)
+  LOG_FORMAT         "text" (default) or "json" (one JSON object per line)
   LOG_FILE           optional path to an additional rotating file handler
   LOG_FILE_MAX_BYTES default 1 MiB
   LOG_FILE_BACKUPS   default 5
@@ -15,15 +15,46 @@ ENV:
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-LOGGER_NAME = "bank_importer"
+LOGGER_NAME = "pocketlog_importer"
 LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s %(message)s"
 DATEFMT = "%Y-%m-%d %H:%M:%S"
+
+
+class JsonFormatter(logging.Formatter):
+    """Render each record as one JSON object per line.
+
+    Carries the same fields as the text format (``time``, ``level``,
+    ``logger``, ``message``) so both formats convey identical information; an
+    ``exc_info`` field is added only when an exception is being logged. The
+    timestamp uses :data:`DATEFMT`, so a line's time reads the same in either
+    format. ``json.dumps`` escapes embedded newlines, so JSON output needs no
+    separate log-forging guard. Selected via ``LOG_FORMAT=json``.
+    """
+
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "time": self.formatTime(record, DATEFMT),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exc_info"] = self.formatException(record.exc_info)
+        return json.dumps(payload, ensure_ascii=False)
+
+
+def _build_formatter() -> logging.Formatter:
+    """Pick the formatter from ``LOG_FORMAT`` (text default, json optional)."""
+    if os.getenv("LOG_FORMAT", "text").lower() == "json":
+        return JsonFormatter()
+    return logging.Formatter(LOG_FORMAT, datefmt=DATEFMT)
 
 
 def configure_logging() -> logging.Logger:
@@ -36,7 +67,7 @@ def configure_logging() -> logging.Logger:
     if logger.handlers:  # already configured (e.g. re-entry in tests)
         return logger
 
-    formatter = logging.Formatter(LOG_FORMAT, datefmt=DATEFMT)
+    formatter = _build_formatter()
 
     stream = logging.StreamHandler(sys.stderr)
     stream.setFormatter(formatter)

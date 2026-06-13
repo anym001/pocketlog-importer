@@ -3,8 +3,8 @@ import json
 import httpx
 import pytest
 
-from bank_importer.config import NotifyConfig
-from bank_importer.notify import (
+from pocketlog_importer.config import NotifyConfig
+from pocketlog_importer.notify import (
     PRIORITY_INFO,
     PRIORITY_PROBLEM,
     GotifyNotifier,
@@ -15,7 +15,7 @@ from bank_importer.notify import (
     notify_crash,
     notify_run,
 )
-from bank_importer.pipeline import RunSummary
+from pocketlog_importer.pipeline import RunSummary
 
 _NOTE = Notification("t", "m", PRIORITY_INFO, False)
 
