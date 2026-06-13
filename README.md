@@ -30,19 +30,20 @@ bank export ─▶ /data/input ─▶ parse ─▶ rules.yaml (whitelist) ─▶
 ## Quick start
 
 1. **Create an API key** in PocketLog (UI → API keys) with the **`import`** scope.
-2. Copy the example config and rules:
+2. Prepare the host folders and start the container (see
+   `docker/docker-compose.example.yml`):
    ```sh
    mkdir -p config data/input
-   cp config/config.example.yaml config/config.yaml
-   cp config/rules.example.yaml  config/rules.yaml
-   ```
-   Edit `config/config.yaml` → set `pocketlog.base_url`. Edit `config/rules.yaml`
-   to match your bookings.
-3. Start the container (see `docker/docker-compose.example.yml`):
-   ```sh
    POCKETLOG_API_KEY=plk_xxx docker compose -f docker/docker-compose.example.yml up -d
    ```
-4. Drop a bank CSV into `data/input/`. The scheduler picks it up; or trigger it
+   On first start the container seeds `config/config.yaml` and
+   `config/rules.yaml` from the bundled examples if they are missing (it logs a
+   WARNING). Then edit `config/config.yaml` → set `pocketlog.base_url`, edit
+   `config/rules.yaml` to match your bookings, and restart.
+   > To configure **before** the first start instead, copy the examples
+   > yourself: `cp config/config.example.yaml config/config.yaml` and
+   > `cp config/rules.example.yaml config/rules.yaml`.
+3. Drop a bank CSV into `data/input/`. The scheduler picks it up; or trigger it
    immediately:
    ```sh
    docker exec pocketlog-bank-importer pocketlog-import --once
@@ -129,6 +130,7 @@ affects the import itself.
 | `NOTIFY_TOKEN` | — | Application token for `notify.url` (PushBits/Gotify) |
 | `PUID` / `PGID` | `1000` | Ownership of `/config` + `/data` (Unraid: `99` / `100`) |
 | `LOG_LEVEL` | `INFO` | Log verbosity |
+| `LOG_FORMAT` | `text` | Log format: `text` or `json` (one JSON object per line) |
 | `LOG_FILE` | — | Optional rotating log file, e.g. `/config/logs/importer.log` |
 | `LOG_FILE_MAX_BYTES` | `1048576` | Rotation size |
 | `LOG_FILE_BACKUPS` | `5` | Rotated copies kept |
@@ -157,10 +159,11 @@ Adding a bank = a new parser in `bank_importer/parsers/` (implement `sniff` +
 
 ```sh
 python -m venv .venv && . .venv/bin/activate
-pip install -r requirements-dev.txt
-pip install -e .
-ruff check . && ruff format --check . && pytest -q
+pip install -r requirements-dev.txt && pip install -e .
 ```
+
+Lint and test commands (= CI) and the branching/release flow are in
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ### Contract tests
 
@@ -178,4 +181,13 @@ CI runs them on every PR against the released image, and nightly against
 `:latest` + `:dev` (`contract.yml`) to catch contract drift from the PocketLog
 side before it is released.
 
-Branching and release flow: see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+## License
+
+Licensed under the GNU Affero General Public License v3.0 or later
+(AGPL-3.0-or-later), the same license as the companion
+[`pocketlog`](https://github.com/anym001/pocketlog) project. See
+[`LICENSE`](LICENSE) for the full text.
+
+---
+
+Built with [Claude Code](https://claude.com/claude-code).
