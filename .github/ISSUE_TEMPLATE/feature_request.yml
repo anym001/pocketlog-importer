@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an idea or improvement (e.g. a new bank format)
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem would this solve? What's the use case? For a new bank, mention the bank and export type.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
