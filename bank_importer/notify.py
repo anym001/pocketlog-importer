@@ -57,6 +57,7 @@ class GotifyNotifier:
         self._url = url.rstrip("/")
         self._token = token
         self._client = client or httpx.Client(verify=verify_tls, timeout=timeout)
+        log.debug("Notifier ready: %s (verify_tls=%s)", self._url, verify_tls)
 
     def send(self, notification: Notification) -> bool:
         """Push one message; best-effort (False + warning instead of raising)."""
@@ -133,11 +134,13 @@ def notify_run(
     if events == "problems" and not notification.problem:
         log.debug("Notification skipped: events=problems but run was clean")
         return
-    notifier.send(notification)
+    if not notifier.send(notification):
+        log.warning("Run notification could not be delivered (see above for details)")
 
 
 def notify_crash(notifier: GotifyNotifier | None, exc: Exception) -> None:
     """Send a crash alert; fires in every event mode."""
     if notifier is None:
         return
-    notifier.send(compose_crash_message(exc))
+    if not notifier.send(compose_crash_message(exc)):
+        log.warning("Crash notification could not be delivered (see above for details)")
