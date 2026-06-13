@@ -180,3 +180,7 @@ CI runs them on every PR against the released image, and nightly against
 side before it is released.
 
 Branching and release flow: see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+---
+
+Built with [Claude Code](https://claude.com/claude-code).
