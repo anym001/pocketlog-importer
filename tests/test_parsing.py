@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from bank_importer.parsing import (
+from pocketlog_importer.parsing import (
     collapse_whitespace,
     decode_bytes,
     guard_csv_field,

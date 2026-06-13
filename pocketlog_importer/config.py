@@ -68,7 +68,13 @@ class AppConfig(BaseModel):
 
 def load_config(path: str | Path) -> AppConfig:
     """Load and validate ``config.yaml``, merging environment overrides."""
-    data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    text = Path(path).read_text(encoding="utf-8")
+    try:
+        data = yaml.safe_load(text) or {}
+    except yaml.YAMLError as exc:
+        # Re-raise as ValueError so the CLI reports it as a clean
+        # "Configuration error" (exit 2) instead of an opaque traceback.
+        raise ValueError(f"invalid YAML in {path}: {exc}") from exc
     config = AppConfig.model_validate(data)
 
     # Environment overrides (secrets + optional convenience overrides).
@@ -83,3 +89,52 @@ def load_config(path: str | Path) -> AppConfig:
         config.notify.token = notify_token
 
     return config
+
+
+def validate_config(config: AppConfig, *, dry_run: bool) -> None:
+    """Check cross-field config semantics beyond pydantic's per-field rules.
+
+    Pydantic validates the shape of each field; this validates how the fields
+    work together at runtime. Fatal misconfigurations raise ``ValueError`` (the
+    CLI turns these into a clean "Configuration error" + exit 2). Settings that
+    are suspicious but still workable are logged as warnings and never abort the
+    run.
+    """
+    from croniter import croniter
+
+    from .logging_config import get_logger
+    from .parsers import available_parsers
+
+    log = get_logger("config")
+
+    # --- Fatal: the run cannot do its job with these ---------------------
+    if not croniter.is_valid(config.schedule.cron):
+        raise ValueError(f"invalid cron expression: {config.schedule.cron!r}")
+
+    if not dry_run and not config.pocketlog.api_key:
+        raise ValueError(
+            "POCKETLOG_API_KEY is required for a real import "
+            "(set the environment variable, or use --dry-run)"
+        )
+
+    known = available_parsers()
+    for mapping in config.banks:
+        if mapping.parser not in known:
+            raise ValueError(
+                f"bank mapping {mapping.match!r} references unknown parser "
+                f"{mapping.parser!r} (available: {', '.join(sorted(known))})"
+            )
+
+    # --- Non-fatal: still works, but worth flagging ----------------------
+    if not config.banks:
+        log.warning(
+            "No bank mappings configured — the parser is auto-detected per "
+            "file by content sniffing"
+        )
+    if dry_run and config.notify.url and not config.notify.token:
+        # In a real run this is fatal (build_notifier raises); in dry-run the
+        # notifier is never built, so only surface it as a warning here.
+        log.warning(
+            "notify.url is set but NOTIFY_TOKEN is missing — notifications "
+            "would be disabled outside dry-run"
+        )

@@ -50,9 +50,9 @@ pytest -q
 
 - **Everything is English** — code, comments, YAML, docs, commit messages, logs.
 - Python 3.12, `ruff` for lint + format (`ruff.toml`).
-- Pure parsing helpers (`bank_importer/parsing.py`) take data as arguments and
+- Pure parsing helpers (`pocketlog_importer/parsing.py`) take data as arguments and
   stay unit-tested; I/O and orchestration live in `pipeline.py` / `cli.py`.
 - New bank → new parser module implementing `sniff` + `parse`, registered in
-  `bank_importer/parsers/__init__.py`, with a fixture-based test.
+  `pocketlog_importer/parsers/__init__.py`, with a fixture-based test.
 - Never log secrets (the API key); never commit a real `config.yaml` /
   `rules.yaml` or any bank data (see `.gitignore`).

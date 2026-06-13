@@ -1,8 +1,8 @@
 from datetime import date
 from decimal import Decimal
 
-from bank_importer.models import NormalizedTransaction
-from bank_importer.rules import apply_rules, compile_rules
+from pocketlog_importer.models import NormalizedTransaction
+from pocketlog_importer.rules import apply_rules, compile_rules
 
 
 def _tx(raw_text: str) -> NormalizedTransaction:

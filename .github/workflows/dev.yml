@@ -32,8 +32,8 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/pocketlog-bank-importer:dev
-            ghcr.io/${{ github.repository_owner }}/pocketlog-bank-importer:dev-${{ steps.sha.outputs.short }}
+            ghcr.io/${{ github.repository_owner }}/pocketlog-importer:dev
+            ghcr.io/${{ github.repository_owner }}/pocketlog-importer:dev-${{ steps.sha.outputs.short }}
           build-args: |
             APP_VERSION=dev-${{ steps.sha.outputs.short }}
           cache-from: type=gha
