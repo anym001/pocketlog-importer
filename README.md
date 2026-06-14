@@ -1,8 +1,8 @@
 # PocketLog Importer
 
-[![tests](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml/badge.svg)](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/anym001/pocketlog-importer/test.yml?label=Tests)](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/anym001/pocketlog-importer)](https://github.com/anym001/pocketlog-importer/releases)
+[![Release](https://img.shields.io/github/v/release/anym001/pocketlog-importer?label=Release)](https://github.com/anym001/pocketlog-importer/releases)
 [![GHCR](https://img.shields.io/badge/GHCR-pocketlog--importer-2496ED?logo=docker&logoColor=white)](https://github.com/anym001/pocketlog-importer/pkgs/container/pocketlog-importer)
 
 A small Docker container that turns bank CSV exports (**easybank**, **dadat**)
