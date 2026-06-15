@@ -11,6 +11,14 @@ into [PocketLog](https://github.com/anym001/pocketlog) transactions. You drop a
 CSV into a folder, a rules whitelist decides what gets imported (description,
 category, tags), and the result is pushed to PocketLog via its CSV import API.
 
+Images are published to **GHCR** and **Docker Hub** — use whichever you prefer
+(`image:` in your compose file):
+
+```
+ghcr.io/anym001/pocketlog-importer:<tag>
+anym001/pocketlog-importer:<tag>      # Docker Hub
+```
+
 ## How it works
 
 ```
