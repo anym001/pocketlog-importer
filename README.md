@@ -1,14 +1,23 @@
 # PocketLog Importer
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/anym001/pocketlog-importer/test.yml?label=Tests)](https://github.com/anym001/pocketlog-importer/actions/workflows/test.yml)
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/anym001/pocketlog-importer/blob/HEAD/LICENSE)
 [![Release](https://img.shields.io/github/v/release/anym001/pocketlog-importer?label=Release)](https://github.com/anym001/pocketlog-importer/releases)
 [![GHCR](https://img.shields.io/badge/GHCR-pocketlog--importer-2496ED?logo=docker&logoColor=white)](https://github.com/anym001/pocketlog-importer/pkgs/container/pocketlog-importer)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-pocketlog--importer-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/anym001/pocketlog-importer)
 
 A small Docker container that turns bank CSV exports (**easybank**, **dadat**)
 into [PocketLog](https://github.com/anym001/pocketlog) transactions. You drop a
 CSV into a folder, a rules whitelist decides what gets imported (description,
 category, tags), and the result is pushed to PocketLog via its CSV import API.
+
+Images are published to **GHCR** and **Docker Hub** — use whichever you prefer
+(`image:` in your compose file):
+
+```
+ghcr.io/anym001/pocketlog-importer:<tag>
+anym001/pocketlog-importer:<tag>      # Docker Hub
+```
 
 ## How it works
 
@@ -85,13 +94,13 @@ unnoticed. The threshold adapts to `schedule.cron` automatically.
 
 ## Configuration
 
-`config/config.yaml` — see [`config/config.example.yaml`](config/config.example.yaml).
+`config/config.yaml` — see [`config/config.example.yaml`](https://github.com/anym001/pocketlog-importer/blob/HEAD/config/config.example.yaml).
 The PocketLog **API key is never stored in YAML**; provide it via the
 `POCKETLOG_API_KEY` environment variable.
 
 ### Rules
 
-`config/rules.yaml` — see [`config/rules.example.yaml`](config/rules.example.yaml).
+`config/rules.yaml` — see [`config/rules.example.yaml`](https://github.com/anym001/pocketlog-importer/blob/HEAD/config/rules.example.yaml).
 
 ```yaml
 rules:
@@ -168,7 +177,7 @@ pip install -r requirements-dev.txt && pip install -e .
 ```
 
 Lint and test commands (= CI) and the branching/release flow are in
-[`CONTRIBUTING.md`](CONTRIBUTING.md).
+[`CONTRIBUTING.md`](https://github.com/anym001/pocketlog-importer/blob/HEAD/CONTRIBUTING.md).
 
 ### Contract tests
 
@@ -191,7 +200,7 @@ side before it is released.
 Licensed under the GNU Affero General Public License v3.0 or later
 (AGPL-3.0-or-later), the same license as the companion
 [`pocketlog`](https://github.com/anym001/pocketlog) project. See
-[`LICENSE`](LICENSE) for the full text.
+[`LICENSE`](https://github.com/anym001/pocketlog-importer/blob/HEAD/LICENSE) for the full text.
 
 ---
 
