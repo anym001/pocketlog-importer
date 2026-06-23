@@ -111,6 +111,17 @@ def test_compose_problem_run():
     assert "failed: broken.csv" in note.message
 
 
+def test_compose_unmatched_alone_is_not_problem():
+    # Unmatched bookings are the expected steady state of a whitelist import:
+    # reported as an info line, but the run stays "OK" / low priority.
+    summary = RunSummary(files=1, parsed=10, matched=4, imported=4, unmatched=6)
+    note = compose_run_message(summary)
+    assert note is not None
+    assert note.problem is False
+    assert note.priority == PRIORITY_INFO
+    assert "unmatched: 6 (review *.unmatched.csv)" in note.message
+
+
 def test_compose_crash_message():
     note = compose_crash_message(RuntimeError("boom"))
     assert note.problem is True
@@ -120,9 +131,12 @@ def test_compose_crash_message():
 
 def test_notify_run_problems_mode_suppresses_clean_runs():
     recorder = _Recorder()
+    # A clean run and an unmatched-only run are both "OK" → suppressed.
     notify_run(recorder, "problems", RunSummary(files=1, imported=1))
-    assert recorder.sent == []
     notify_run(recorder, "problems", RunSummary(files=1, unmatched=1))
+    assert recorder.sent == []
+    # Only a failed file pages in problems mode.
+    notify_run(recorder, "problems", RunSummary(files=1, failed_files=["x.csv"]))
     assert len(recorder.sent) == 1
 
 
