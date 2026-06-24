@@ -15,3 +15,25 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  # Python dependencies (httpx, pydantic, croniter, ruff …).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "dev"
+    groups:
+      python:
+        patterns:
+          - "*"
+
+  # Base image bumps (python:3.12-slim …).
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+    target-branch: "dev"
+    groups:
+      docker:
+        patterns:
+          - "*"
