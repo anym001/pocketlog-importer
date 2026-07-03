@@ -42,6 +42,9 @@ class DadatParser:
             amount_raw = (row.get(_AMOUNT_COL) or "").strip()
             if not amount_raw:
                 continue
+            signed = parse_amount(amount_raw)
+            if signed == 0:
+                continue  # zero-amount rows carry no direction (info/balance lines)
             raw_text = collapse_whitespace(
                 " ".join(
                     (row.get(col) or "").strip()
@@ -51,7 +54,7 @@ class DadatParser:
             )
             tx = NormalizedTransaction.from_signed(
                 date=parse_date(row[_DATE_COL], _DATE_FMT),
-                signed_amount=parse_amount(amount_raw),
+                signed_amount=signed,
                 raw_text=raw_text,
             )
             transactions.append(tx)

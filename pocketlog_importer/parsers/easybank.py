@@ -53,6 +53,8 @@ class EasybankParser:
             if len(fields) < _EXPECTED_COLS or not fields[0].strip():
                 continue  # skip blank/short lines defensively
             signed = parse_amount(fields[_COL_AMOUNT])
+            if signed == 0:
+                continue  # zero-amount rows carry no direction (info/balance lines)
             tx = NormalizedTransaction.from_signed(
                 date=parse_date(fields[_COL_DATE], _DATE_FMT),
                 signed_amount=signed,

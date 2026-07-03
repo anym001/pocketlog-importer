@@ -99,7 +99,11 @@ def compose_run_message(summary: RunSummary) -> Notification | None:
     """
     if summary.files == 0:
         return None
-    problem = bool(summary.failed_files) or summary.unmatched > 0
+    # Unmatched bookings are the expected steady state of a whitelist import
+    # (anything without a rule is deliberately filtered out), so they are
+    # reported as an info line but never flip a run to "problem". Only a
+    # failed file (parse/import error) warrants the high-priority alert.
+    problem = bool(summary.failed_files)
     lines = [
         f"files: {summary.files}",
         f"imported: {summary.imported}",
