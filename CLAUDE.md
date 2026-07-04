@@ -90,7 +90,8 @@ to PUID/PGID and drops via gosu.
 
 ## Conventions
 - **English everywhere** (code, comments, docs, commits, logs).
-- Python 3.12; `ruff` lint+format (`ruff.toml`, line 88, select E/W/F/I/UP/B).
+- Python (version pinned in `docker/Dockerfile`); `ruff` lint+format
+  (`ruff.toml`, line 88, select E/W/F/I/UP/B).
 - Pure helpers in `parsing.py` (data-in, no I/O) — unit-tested. I/O/orchestration
   in `pipeline.py`/`cli.py`.
 - Secrets via ENV only (`POCKETLOG_API_KEY`, `NOTIFY_TOKEN`), never in YAML;

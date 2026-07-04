@@ -49,7 +49,7 @@ pytest -q
 ## Conventions
 
 - **Everything is English** — code, comments, YAML, docs, commit messages, logs.
-- Python 3.12, `ruff` for lint + format (`ruff.toml`).
+- Python (version pinned in `docker/Dockerfile`), `ruff` for lint + format (`ruff.toml`).
 - Pure parsing helpers (`pocketlog_importer/parsing.py`) take data as arguments and
   stay unit-tested; I/O and orchestration live in `pipeline.py` / `cli.py`.
 - New bank → new parser module implementing `sniff` + `parse`, registered in
