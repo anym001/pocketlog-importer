@@ -3,11 +3,11 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     # PRs always target dev, never main (branching convention, see
     # CONTRIBUTING.md); main only updates via the dev -> main release PR.
     target-branch: "dev"
-    # Bundle every github-actions update into a single weekly PR instead of
+    # Bundle every github-actions update into a single monthly PR instead of
     # one PR per action. Avoids the mutual merge conflicts that separate PRs
     # cause once the first one lands (each touches the same pinned-SHA lines
     # in test.yml/dev.yml/build.yml).
@@ -20,7 +20,7 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     target-branch: "dev"
     groups:
       python:
@@ -31,7 +31,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/docker"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     target-branch: "dev"
     groups:
       docker:
