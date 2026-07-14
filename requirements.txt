@@ -1,4 +1,4 @@
 httpx==0.28.1
 PyYAML==6.0.3
 pydantic==2.13.4
-croniter==6.2.3
+croniter==6.2.4
